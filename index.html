@@ -153,7 +153,49 @@
   .promise h3{ font-size: 14px; margin-bottom: 6px; }
   .promise p{ font-size: 13px; color: var(--usuzumi); }
 
-  /* ===== 店主について ===== */
+  /* ===== カスタマイズ受注 ===== */
+  .custom-cta{
+    background: var(--kami);
+    border: 1px solid var(--keisen);
+    border-top: 4px solid var(--sumire);
+    border-radius: var(--radius);
+    padding: 26px 28px;
+  }
+  .custom-lead{
+    font-size: 15px; margin-bottom: 20px;
+  }
+  .custom-examples{
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 640px){ .custom-examples{ grid-template-columns: 1fr; } }
+  .example{
+    background: var(--washi);
+    border: 1px solid var(--keisen);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .example h3{ font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--ai); }
+  .example p{ font-size: 12px; color: var(--usuzumi); }
+  .contact-links{
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .btn-contact{
+    display: inline-block;
+    background: var(--ai);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    padding: 10px 22px;
+    font-size: 13px; font-weight: 600;
+    transition: background .12s ease;
+  }
+  .btn-contact:hover{ background: var(--ai-deep); color: #fff; }
+  .btn-contact-mail{ font-size: 13px; color: var(--ai); }
+  .contact-or{ font-size: 13px; color: var(--usuzumi); }
+  .custom-note{ margin-top: 14px; font-size: 12px; color: var(--usuzumi); }
+
+  /* ===== 店舗情報 ===== */
   .about{
     background: var(--kami);
     border: 1px solid var(--keisen);
@@ -235,6 +277,33 @@
         <h3>🗣️ フィードバック歓迎</h3>
         <p>不具合や要望は各道具のGitHub Issuesへ。日本語でどうぞ。直せるものはすぐ直します。</p>
       </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>カスタマイズのご相談</h2>
+    <div class="custom-cta">
+      <p class="custom-lead">「ロゴを入れたい」「会社の書式に合わせたい」「英語版が欲しい」—— 無料ツールをベースに、あなた専用の版を作ります。</p>
+      <div class="custom-examples">
+        <div class="example">
+          <h3>🏷️ ロゴ・屋号の埋め込み</h3>
+          <p>発行者情報・社名・ロゴを最初から入力済みの専用版を作成します。毎回入力する手間が消えます。</p>
+        </div>
+        <div class="example">
+          <h3>📋 項目のカスタマイズ</h3>
+          <p>独自の備考欄・支払い方法・特記事項など、業種に合わせた項目の追加・変更が可能です。</p>
+        </div>
+        <div class="example">
+          <h3>🌐 その他のご要望</h3>
+          <p>英語版・複数テンプレートのセット作成・デザイン変更など、お気軽にご相談ください。</p>
+        </div>
+      </div>
+      <div class="contact-links">
+        <a href="https://github.com/taku0826/sumire-invoice/issues/new?title=%E3%82%AB%E3%82%B9%E3%82%BF%E3%83%9E%E3%82%A4%E3%82%BA%E3%81%AE%E3%81%94%E7%9B%B8%E8%AB%87" class="btn-contact" target="_blank" rel="noopener">GitHub Issues でご相談</a>
+        <span class="contact-or">または</span>
+        <a href="mailto:sumiredo.jp@gmail.com" class="btn-contact-mail">sumiredo.jp@gmail.com</a>
+      </div>
+      <p class="custom-note">納品物は単一HTMLファイル。お渡し後は自由に使っていただけます。費用はご要望の規模によって異なります。まずはお気軽にどうぞ。</p>
     </div>
   </section>
 
