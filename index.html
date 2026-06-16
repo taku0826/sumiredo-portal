@@ -184,7 +184,8 @@
   .example h3{ font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--ai); }
   .example p{ font-size: 12px; color: var(--usuzumi); }
   /* 実物見本ショーケース */
-  .sample-showcase{ grid-template-columns: 1fr; margin-bottom: 16px; }
+  .sample-showcase{ grid-template-columns: 1fr 1fr; margin-bottom: 16px; }
+  @media (max-width: 640px){ .sample-showcase{ grid-template-columns: 1fr; } }
   .example-sample{
     border: 1px solid var(--sumire);
     border-left: 4px solid var(--sumire);
@@ -332,11 +333,17 @@
     <h2>カスタマイズのご相談</h2>
     <div class="custom-cta">
       <p class="custom-lead">「ロゴを入れたい」「会社の書式に合わせたい」「英語版が欲しい」—— 無料ツールをベースに、あなた専用の版を作ります。</p>
+      <p class="custom-lead" style="margin-top:-6px;"><strong>「専用版」の実物見本を、そのまま触れます。</strong>業種ごとに、項目も配色も変えてお作りします(下は架空の事業者を例にした見本です)。</p>
       <div class="custom-examples sample-showcase">
         <div class="example example-sample">
-          <h3>🛠️ 実物の見本を触れます</h3>
-          <p>建設業むけにカスタムした「専用 工事見積書ツール」の見本です。屋号・登録番号は記入ずみ、工事名・工事場所・工期の項目を追加、配色も建設向けに変更。これが納品物のイメージです。</p>
-          <a class="sample-link" href="./samples/kensetsu-mitsumori/" target="_blank" rel="noopener">見本を開いて触ってみる →</a>
+          <h3>🏗️ 建設業むけ:工事見積書ツール</h3>
+          <p>屋号・建設業許可・登録番号は記入ずみ。<strong>工事名・工事場所・工期</strong>の項目を追加し、配色も建設向けに変更しています。</p>
+          <a class="sample-link" href="./samples/kensetsu-mitsumori/" target="_blank" rel="noopener">建設業の見本を触ってみる →</a>
+        </div>
+        <div class="example example-sample">
+          <h3>🎨 フリーランスむけ:源泉徴収つき請求書</h3>
+          <p>屋号・振込先は記入ずみ。無料版にない<strong>源泉徴収(10.21%)の差引計算</strong>を追加し、「お振込金額」を自動表示します。</p>
+          <a class="sample-link" href="./samples/freelance-invoice/" target="_blank" rel="noopener">フリーランスの見本を触ってみる →</a>
         </div>
       </div>
       <div class="custom-examples">

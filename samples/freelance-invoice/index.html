@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>【見本】あおぞらデザイン 専用 請求書ツール(源泉徴収つき)｜すみれ堂のカスタム制作例</title>
+<meta name="description" content="すみれ堂がココナラで制作する『あなた専用の書類ツール』の実物見本です。架空のフリーランスデザイナー・あおぞらデザイン様向けに、屋号・振込先・登録番号を埋め込み、無料版にはない源泉徴収(10.21%)の差引計算を追加した単一HTML請求書ツール。開くだけで動き、データはどこにも送信されません。">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://taku0826.github.io/sumiredo-portal/samples/freelance-invoice/">
+<style>
+  :root{
+    /* クリエイター向けにカスタムした配色(標準の藍ではなく深緑青×珊瑚) */
+    --ai: #14564E;        /* 深い緑青(あおぞらデザインの地色) */
+    --ai-deep: #0E3E38;
+    --accent: #E2725B;    /* 珊瑚(アクセント) */
+    --shu: #C0392B;       /* 朱(印鑑) */
+    --washi: #F6F8F7;
+    --kami: #FFFFFF;
+    --sumi: #23272E;
+    --usuzumi: #6B7280;
+    --keisen: #D7DCE3;
+    --radius: 10px;
+  }
+  *{ box-sizing: border-box; margin: 0; padding: 0; }
+  html,body{ height:100%; }
+  body{
+    font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", "Meiryo", sans-serif;
+    background: var(--washi);
+    color: var(--sumi);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ===== 見本バナー(印刷では消える) ===== */
+  .sample-banner{
+    background: linear-gradient(100deg, var(--accent), #C9543C);
+    color:#fff; padding: 12px 22px;
+    display:flex; align-items:center; justify-content:center; gap:14px;
+    flex-wrap:wrap; text-align:center; font-size:13px; line-height:1.5;
+  }
+  .sample-banner strong{ font-weight:700; }
+  .sample-banner a{
+    background:#fff; color:var(--ai); text-decoration:none;
+    font-weight:700; border-radius:6px; padding:7px 16px; white-space:nowrap;
+  }
+  .sample-banner a:hover{ filter:brightness(.96); }
+
+  /* ===== ヘッダー ===== */
+  header.app{
+    background: var(--ai);
+    color: #fff;
+    padding: 14px 24px;
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    flex-wrap: wrap;
+  }
+  .brand{ display:flex; align-items:baseline; gap:10px; }
+  .brand h1{ font-size: 18px; font-weight: 700; letter-spacing: .06em; }
+  .brand span{ font-size: 11px; opacity:.78; letter-spacing:.05em; }
+  .header-actions{ display:flex; gap:10px; }
+  button{
+    font-family: inherit; font-size: 13px; cursor:pointer;
+    border:none; border-radius: 6px; padding: 9px 16px;
+    transition: filter .15s ease;
+  }
+  button:hover{ filter: brightness(1.08); }
+  button:focus-visible{ outline: 2px solid #fff; outline-offset: 2px; }
+  .btn-print{ background: var(--accent); color:#fff; font-weight:700; letter-spacing:.04em; }
+  .btn-ghost{ background: rgba(255,255,255,.12); color:#fff; }
+
+  /* ===== レイアウト ===== */
+  .wrap{
+    display:grid; grid-template-columns: 380px 1fr;
+    gap: 24px; padding: 24px; max-width: 1280px; margin: 0 auto;
+  }
+  @media (max-width: 920px){ .wrap{ grid-template-columns: 1fr; } }
+
+  /* ===== 入力フォーム ===== */
+  .panel{
+    background: var(--kami);
+    border: 1px solid var(--keisen);
+    border-radius: var(--radius);
+    padding: 18px;
+  }
+  .panel + .panel{ margin-top: 16px; }
+  .panel h2{
+    font-size: 12px; color: var(--ai); letter-spacing: .15em;
+    border-left: 3px solid var(--accent); padding-left: 8px; margin-bottom: 12px;
+  }
+  .field{ margin-bottom: 10px; }
+  .field label{ display:block; font-size: 11px; color: var(--usuzumi); margin-bottom: 3px; }
+  .field input, .field textarea, .field select{
+    width:100%; font-family:inherit; font-size: 13px;
+    border:1px solid var(--keisen); border-radius:6px; padding: 7px 9px;
+    background:#FDFDFC; color: var(--sumi);
+  }
+  .field input:focus, .field textarea:focus, .field select:focus{
+    outline: 2px solid var(--ai); outline-offset: 0; border-color: var(--ai);
+  }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .hint{ font-size:11px; color:var(--usuzumi); margin-top:4px; }
+  .custom-tag{
+    display:inline-block; font-size:10px; font-weight:700; color:#fff;
+    background:var(--accent); border-radius:4px; padding:1px 6px; margin-left:6px;
+    letter-spacing:.04em; vertical-align:1px;
+  }
+  .check-line{ display:flex; align-items:center; gap:8px; font-size:13px; }
+  .check-line input{ width:16px; height:16px; accent-color: var(--accent); }
+
+  /* 明細入力 */
+  .item-row{
+    display:grid; grid-template-columns: 1fr 56px 84px 64px 28px;
+    gap:6px; margin-bottom:6px; align-items:center;
+  }
+  .item-row input, .item-row select{
+    font-family:inherit; font-size:12px; border:1px solid var(--keisen);
+    border-radius:5px; padding:6px 7px; background:#FDFDFC; width:100%;
+  }
+  .item-head{ font-size:10px; color:var(--usuzumi); }
+  .del{
+    background:none; color:var(--usuzumi); font-size:16px; padding:2px;
+    border-radius:4px; line-height:1;
+  }
+  .del:hover{ color:var(--accent); }
+  .add-item{
+    width:100%; background: var(--washi); color: var(--ai);
+    border:1px dashed var(--keisen); font-weight:600; margin-top:4px;
+  }
+  .stamp-toggle{ display:flex; align-items:center; gap:8px; font-size:13px; }
+  .stamp-toggle input{ width:16px; height:16px; accent-color: var(--shu); }
+
+  /* ===== プレビュー(請求書本体)===== */
+  .preview-area{ position: relative; }
+  .sheet{
+    background: #fff;
+    width: 100%; max-width: 800px; margin: 0 auto;
+    padding: 48px 52px;
+    border: 1px solid var(--keisen);
+    border-radius: 4px;
+    box-shadow: 0 2px 14px rgba(20,86,78,.10);
+    position: relative;
+  }
+  .sheet .title{
+    text-align:center; font-size: 26px; letter-spacing: 1.2em;
+    text-indent: 1.2em;
+    color: var(--sumi); font-weight: 600;
+    border-bottom: 2px solid var(--sumi);
+    padding-bottom: 10px; margin-bottom: 28px;
+  }
+  .meta-top{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 26px; }
+  .to-block .to-name{
+    font-size: 18px; font-weight: 600;
+    border-bottom: 1px solid var(--sumi);
+    padding-bottom: 4px; margin-bottom: 6px; min-width: 260px;
+  }
+  .to-block .to-addr{ font-size: 12px; color: var(--sumi); white-space: pre-line; }
+  .from-block{ text-align: left; font-size: 12px; position: relative; }
+  .from-block .doc-meta{ margin-bottom: 14px; font-size: 12px; }
+  .from-block .doc-meta div{ display:flex; justify-content:space-between; gap: 18px; }
+  .from-block .doc-meta span:first-child{ color: var(--usuzumi); }
+  .from-name{ font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .from-detail{ white-space: pre-line; }
+  .reg-no{ margin-top: 4px; font-size: 12px; }
+
+  /* 朱印スタンプ */
+  .hanko{
+    position: absolute; right: -6px; bottom: -14px;
+    width: 64px; height: 64px;
+    border: 2.5px solid var(--shu);
+    border-radius: 50%;
+    color: var(--shu);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700;
+    writing-mode: vertical-rl;
+    letter-spacing: .1em;
+    transform: rotate(4deg);
+    opacity: .88;
+    mix-blend-mode: multiply;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(192,57,43,.06), transparent 60%);
+    overflow: hidden;
+    padding: 4px;
+    text-align: center;
+    line-height: 1.1;
+  }
+  .hanko.hidden{ display:none; }
+
+  .amount-line{
+    display:flex; align-items: baseline; gap: 18px;
+    border-bottom: 2px solid var(--sumi);
+    padding-bottom: 6px; margin-bottom: 26px;
+    max-width: 460px;
+  }
+  .amount-line .lbl{ font-size: 13px; }
+  .amount-line .val{ font-size: 26px; font-weight: 700; letter-spacing: .02em; }
+  .amount-line .tax-note{ font-size: 11px; color: var(--usuzumi); }
+
+  table.items{
+    width: 100%; border-collapse: collapse; margin-bottom: 18px;
+    font-size: 13px;
+  }
+  table.items th{
+    background: var(--ai); color: #fff; font-weight: 600;
+    padding: 8px 10px; font-size: 12px; letter-spacing: .05em;
+  }
+  table.items td{
+    border-bottom: 1px solid var(--keisen);
+    padding: 8px 10px;
+  }
+  .ta-r{ text-align: right; }
+  .ta-c{ text-align: center; }
+  .totals{
+    width: 340px; margin-left: auto; font-size: 13px;
+    border-top: 1px solid var(--sumi);
+    margin-bottom: 26px;
+  }
+  .totals div{
+    display:flex; justify-content: space-between;
+    padding: 6px 8px; border-bottom: 1px solid var(--keisen);
+  }
+  .totals .grand{
+    font-weight: 700; font-size: 15px;
+    background: var(--washi);
+    border-bottom: 2px solid var(--sumi);
+  }
+  .totals .sub-tax{ font-size: 12px; color: var(--usuzumi); }
+  .totals .gensen{ color: var(--accent); }
+  .totals .payable{
+    font-weight: 700; font-size: 16px;
+    background: #FBEDE9;
+    border-bottom: 2px solid var(--sumi);
+  }
+
+  .bank-block h3, .notes-block h3{
+    font-size: 12px; color: var(--ai); letter-spacing:.1em;
+    border-left: 3px solid var(--accent); padding-left: 8px; margin-bottom: 6px;
+  }
+  .bank-block, .notes-block{ margin-bottom: 18px; }
+  .bank-block p, .notes-block p{ font-size: 13px; white-space: pre-line; }
+  footer.credit{
+    text-align:center; font-size: 11px; color: var(--usuzumi);
+    padding: 18px 0 30px;
+  }
+  footer.credit a{ color: var(--ai); }
+
+  /* ===== 印刷 ===== */
+  @media print{
+    body{ background:#fff; }
+    .sample-banner, header.app, .form-col, footer.credit{ display:none !important; }
+    .wrap{ display:block; padding:0; max-width:none; }
+    .sheet{
+      box-shadow:none; border:none; border-radius:0;
+      max-width:none; width:100%; padding: 10mm 12mm;
+    }
+  }
+  @page{ size: A4; margin: 8mm; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sample-banner">
+  <span>これは <strong>すみれ堂が制作する「あなた専用ツール」の見本</strong> です(架空のフリーランス・あおぞらデザイン様を例にしています)。無料版にない<strong>源泉徴収の差引</strong>など、あなたの仕事に合わせた項目を足せます。</span>
+  <a href="https://coconala.com/services/4269975" target="_blank" rel="noopener">あなたの版を依頼する →</a>
+</div>
+
+<header class="app">
+  <div class="brand">
+    <h1>あおぞらデザイン｜請求書</h1>
+    <span>専用ツール(見本)・源泉徴収つき・データ送信なし</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn-ghost" id="btnSample">見本データを入れ直す</button>
+    <button class="btn-print" id="btnPrint">印刷 / PDF保存</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- ===== 入力列 ===== -->
+  <div class="form-col">
+
+    <div class="panel">
+      <h2>請求情報</h2>
+      <div class="row2">
+        <div class="field">
+          <label for="docNo">請求書番号</label>
+          <input id="docNo" data-bind placeholder="INV-2026-001">
+        </div>
+        <div class="field">
+          <label for="docDate">発行日</label>
+          <input id="docDate" data-bind type="date">
+        </div>
+      </div>
+      <div class="field">
+        <label for="dueDate">お支払期限</label>
+        <input id="dueDate" data-bind type="date">
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>請求先</h2>
+      <div class="field">
+        <label for="toName">宛名(会社名・氏名)</label>
+        <input id="toName" data-bind placeholder="株式会社サンプル商事">
+      </div>
+      <div class="field">
+        <label for="toSuffix">敬称</label>
+        <select id="toSuffix" data-bind>
+          <option value="御中">御中</option>
+          <option value="様">様</option>
+          <option value="">(なし)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="toAddr">住所など(任意)</label>
+        <textarea id="toAddr" data-bind rows="2" placeholder="〒530-0001 大阪市北区..."></textarea>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>発行者(あおぞらデザイン) <span class="custom-tag">記入ずみ</span></h2>
+      <div class="field">
+        <label for="fromName">名前・屋号</label>
+        <input id="fromName" data-bind placeholder="青空 円">
+      </div>
+      <div class="field">
+        <label for="fromDetail">住所・連絡先</label>
+        <textarea id="fromDetail" data-bind rows="3"></textarea>
+      </div>
+      <div class="field">
+        <label for="regNo">適格請求書発行事業者 登録番号</label>
+        <input id="regNo" data-bind placeholder="T1234567890123">
+        <p class="hint">T + 数字13桁。未登録の場合は空欄でOK。</p>
+      </div>
+      <div class="stamp-toggle">
+        <input type="checkbox" id="stampOn" checked>
+        <label for="stampOn">朱印スタンプを押す(姓を自動表示)</label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>明細</h2>
+      <div class="item-row item-head">
+        <span>品目</span><span>数量</span><span>単価</span><span>税率</span><span></span>
+      </div>
+      <div id="items"></div>
+      <button class="add-item" id="btnAdd">+ 行を追加</button>
+    </div>
+
+    <div class="panel">
+      <h2>源泉徴収 <span class="custom-tag">フリーランス向け 追加項目</span></h2>
+      <div class="check-line">
+        <input type="checkbox" id="gensenOn" checked>
+        <label for="gensenOn">報酬から源泉徴収(10.21%)を差し引いて請求する</label>
+      </div>
+      <p class="hint">消費税を分けて記載しているため、源泉徴収税額は<strong>税抜の報酬額</strong>に対して10.21%で計算します(国税庁の取扱い)。100万円を超える部分は20.42%。差引後の「お振込金額」を自動表示します。</p>
+    </div>
+
+    <div class="panel">
+      <h2>振込先・備考</h2>
+      <div class="field">
+        <label for="bank">振込先</label>
+        <textarea id="bank" data-bind rows="2"></textarea>
+      </div>
+      <div class="field">
+        <label for="notes">備考</label>
+        <textarea id="notes" data-bind rows="2"></textarea>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== プレビュー列 ===== -->
+  <div class="preview-area">
+    <div class="sheet" id="sheet">
+      <div class="title">請求書</div>
+
+      <div class="meta-top">
+        <div class="to-block">
+          <div class="to-name" id="pToName">&nbsp;</div>
+          <div class="to-addr" id="pToAddr"></div>
+        </div>
+        <div class="from-block">
+          <div class="doc-meta">
+            <div><span>請求書番号</span><span id="pDocNo">—</span></div>
+            <div><span>発行日</span><span id="pDocDate">—</span></div>
+            <div><span>お支払期限</span><span id="pDueDate">—</span></div>
+          </div>
+          <div class="from-name" id="pFromName"></div>
+          <div class="from-detail" id="pFromDetail"></div>
+          <div class="reg-no" id="pRegNo"></div>
+          <div class="hanko" id="pHanko"></div>
+        </div>
+      </div>
+
+      <div class="amount-line">
+        <span class="lbl" id="pGrandLbl">お振込金額</span>
+        <span class="val" id="pGrand">¥0</span>
+        <span class="tax-note" id="pGrandNote">(源泉徴収後)</span>
+      </div>
+
+      <table class="items">
+        <thead>
+          <tr>
+            <th style="text-align:left">品目</th>
+            <th class="ta-c" style="width:60px">数量</th>
+            <th class="ta-r" style="width:100px">単価</th>
+            <th class="ta-c" style="width:60px">税率</th>
+            <th class="ta-r" style="width:110px">金額</th>
+          </tr>
+        </thead>
+        <tbody id="pItems"></tbody>
+      </table>
+
+      <div class="totals" id="pTotals"></div>
+
+      <div class="bank-block" id="pBankBlock">
+        <h3>お振込先</h3>
+        <p id="pBank"></p>
+      </div>
+      <div class="notes-block" id="pNotesBlock">
+        <h3>備考</h3>
+        <p id="pNotes"></p>
+      </div>
+    </div>
+    <footer class="credit">
+      これは「専用ツール」の見本です(架空のあおぞらデザイン様向け)。入力内容はどこにも送信されません。<br>
+      あなたの屋号・項目・配色で作ります → <a href="https://coconala.com/services/4269975" target="_blank" rel="noopener">ココナラで依頼する</a><br>
+      <a href="https://taku0826.github.io/sumiredo-portal/">🌸 すみれ堂 — 道具一覧・無料ツールはこちら</a>
+    </footer>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  function yen(n){
+    return "¥" + Math.round(n).toLocaleString("ja-JP");
+  }
+  function fmtDate(v){
+    if(!v) return "—";
+    var p = v.split("-");
+    return p[0] + "年" + Number(p[1]) + "月" + Number(p[2]) + "日";
+  }
+  function esc(s){
+    var d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  /* ---- 明細行 ---- */
+  var itemsEl = document.getElementById("items");
+
+  function addItem(data){
+    data = data || { name:"", qty:1, price:"", rate:10 };
+    var row = document.createElement("div");
+    row.className = "item-row";
+    row.innerHTML =
+      '<input class="i-name" placeholder="例:ロゴデザイン制作費" value="' + esc(data.name) + '">' +
+      '<input class="i-qty" type="number" min="0" step="1" value="' + data.qty + '">' +
+      '<input class="i-price" type="number" min="0" step="1" placeholder="0" value="' + data.price + '">' +
+      '<select class="i-rate">' +
+        '<option value="10"' + (data.rate==10?" selected":"") + '>10%</option>' +
+        '<option value="8"' + (data.rate==8?" selected":"") + '>8%</option>' +
+        '<option value="0"' + (data.rate==0?" selected":"") + '>0%</option>' +
+      '</select>' +
+      '<button class="del" title="この行を削除" aria-label="この行を削除">×</button>';
+    row.querySelector(".del").addEventListener("click", function(){
+      row.remove(); render();
+    });
+    row.addEventListener("input", render);
+    itemsEl.appendChild(row);
+  }
+
+  /* ---- 集計と描画 ---- */
+  function render(){
+    var g = function(id){ return document.getElementById(id).value; };
+
+    document.getElementById("pDocNo").textContent  = g("docNo") || "—";
+    document.getElementById("pDocDate").textContent = fmtDate(g("docDate"));
+    document.getElementById("pDueDate").textContent = fmtDate(g("dueDate"));
+
+    var toName = g("toName");
+    var suffix = g("toSuffix");
+    document.getElementById("pToName").textContent =
+      toName ? (toName + (suffix ? " " + suffix : "")) : " ";
+    document.getElementById("pToAddr").textContent = g("toAddr");
+
+    document.getElementById("pFromName").textContent = g("fromName");
+    document.getElementById("pFromDetail").textContent = g("fromDetail");
+
+    var reg = g("regNo").trim();
+    document.getElementById("pRegNo").textContent =
+      reg ? "登録番号:" + reg : "";
+
+    /* 朱印 */
+    var hanko = document.getElementById("pHanko");
+    var stampOn = document.getElementById("stampOn").checked;
+    var sei = (g("fromName").trim().split(/[\s　]+/)[0] || "").slice(0, 4);
+    if(stampOn && sei){
+      hanko.classList.remove("hidden");
+      hanko.textContent = sei;
+    }else{
+      hanko.classList.add("hidden");
+    }
+
+    /* 明細 */
+    var rows = itemsEl.querySelectorAll(".item-row");
+    var tbody = document.getElementById("pItems");
+    tbody.innerHTML = "";
+    var byRate = {};
+    var subtotal = 0;
+
+    rows.forEach(function(r){
+      var name = r.querySelector(".i-name").value;
+      var qty = parseFloat(r.querySelector(".i-qty").value) || 0;
+      var price = parseFloat(r.querySelector(".i-price").value) || 0;
+      var rate = parseInt(r.querySelector(".i-rate").value, 10);
+      if(!name && !price) return;
+      var amt = qty * price;
+      subtotal += amt;
+      byRate[rate] = (byRate[rate] || 0) + amt;
+
+      var tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" + esc(name) + (rate===8 ? ' <span style="font-size:11px;color:#6B7280">※軽減税率</span>' : "") + "</td>" +
+        '<td class="ta-c">' + qty + "</td>" +
+        '<td class="ta-r">' + yen(price) + "</td>" +
+        '<td class="ta-c">' + rate + "%</td>" +
+        '<td class="ta-r">' + yen(amt) + "</td>";
+      tbody.appendChild(tr);
+    });
+
+    /* インボイス要件:税率ごとに区分した消費税額 */
+    var totals = document.getElementById("pTotals");
+    totals.innerHTML = "";
+    var totalTax = 0;
+    var addLine = function(label, val, cls){
+      var d = document.createElement("div");
+      if(cls) d.className = cls;
+      d.innerHTML = "<span>" + label + "</span><span>" + val + "</span>";
+      totals.appendChild(d);
+    };
+    addLine("小計(税抜)", yen(subtotal));
+    [10, 8, 0].forEach(function(rate){
+      if(byRate[rate] === undefined) return;
+      var tax = Math.floor(byRate[rate] * rate / 100);
+      totalTax += tax;
+      if(rate > 0){
+        addLine("消費税(" + rate + "%対象 " + yen(byRate[rate]) + ")", yen(tax), "sub-tax");
+      }
+    });
+    var grand = subtotal + totalTax;
+    addLine("合計(税込)", yen(grand), "grand");
+
+    /* 源泉徴収(税抜=報酬額に対して10.21%。100万円超の部分は20.42%) */
+    var gensenOn = document.getElementById("gensenOn").checked;
+    var gensen = 0;
+    if(gensenOn && subtotal > 0){
+      if(subtotal <= 1000000){
+        gensen = Math.floor(subtotal * 0.1021);
+      }else{
+        gensen = Math.floor(1000000 * 0.1021 + (subtotal - 1000000) * 0.2042);
+      }
+      addLine("源泉徴収税額(10.21%)", "− " + yen(gensen), "gensen");
+    }
+    var payable = grand - gensen;
+
+    if(gensenOn && subtotal > 0){
+      addLine("お振込金額", yen(payable), "payable");
+      document.getElementById("pGrandLbl").textContent = "お振込金額";
+      document.getElementById("pGrandNote").textContent = "(源泉徴収後)";
+    }else{
+      document.getElementById("pGrandLbl").textContent = "ご請求金額";
+      document.getElementById("pGrandNote").textContent = "(税込)";
+    }
+    document.getElementById("pGrand").textContent = yen(payable);
+
+    /* 振込先・備考 */
+    var bank = g("bank"), notes = g("notes");
+    document.getElementById("pBank").textContent = bank;
+    document.getElementById("pBankBlock").style.display = bank ? "" : "none";
+    document.getElementById("pNotes").textContent = notes;
+    document.getElementById("pNotesBlock").style.display = notes ? "" : "none";
+  }
+
+  /* ---- イベント ---- */
+  document.querySelectorAll("[data-bind]").forEach(function(el){
+    el.addEventListener("input", render);
+    el.addEventListener("change", render);
+  });
+  document.getElementById("stampOn").addEventListener("change", render);
+  document.getElementById("gensenOn").addEventListener("change", render);
+  document.getElementById("btnAdd").addEventListener("click", function(){
+    addItem(); render();
+  });
+  document.getElementById("btnPrint").addEventListener("click", function(){
+    window.print();
+  });
+
+  /* ---- 見本データ(あおぞらデザインとして記入ずみ) ---- */
+  function loadSample(){
+    var today = new Date();
+    var due = new Date(today.getFullYear(), today.getMonth() + 1, 0); // 当月末
+    var iso = function(d){
+      return d.getFullYear() + "-" +
+        String(d.getMonth()+1).padStart(2,"0") + "-" +
+        String(d.getDate()).padStart(2,"0");
+    };
+    document.getElementById("docNo").value = "INV-" + today.getFullYear() + "-042";
+    document.getElementById("docDate").value = iso(today);
+    document.getElementById("dueDate").value = iso(due);
+    document.getElementById("toName").value = "株式会社サンプル商事";
+    document.getElementById("toSuffix").value = "御中";
+    document.getElementById("toAddr").value = "〒530-0001\n大阪市北区梅田1-1-1";
+    document.getElementById("fromName").value = "あおぞらデザイン(青空 円)";
+    document.getElementById("fromDetail").value = "〒550-0002 大阪市西区江戸堀2-2-2\nTEL: 090-0000-0000\naozora@example.com";
+    document.getElementById("regNo").value = "T1234567890123";
+    document.getElementById("gensenOn").checked = true;
+    document.getElementById("bank").value = "あおぞら銀行 本店 普通 1234567 アオゾラ マドカ";
+    document.getElementById("notes").value = "・源泉徴収税額を差し引いた「お振込金額」をお振込ください。\n・恐れ入りますが振込手数料は貴社にてご負担をお願いいたします。";
+    itemsEl.innerHTML = "";
+    addItem({ name:"ロゴデザイン制作費", qty:1, price:120000, rate:10 });
+    addItem({ name:"名刺・レターヘッド デザイン", qty:1, price:40000, rate:10 });
+    addItem({ name:"Webサイト トップページ デザイン", qty:1, price:90000, rate:10 });
+    render();
+  }
+  document.getElementById("btnSample").addEventListener("click", loadSample);
+
+  /* ---- 初期化:見本として記入ずみの状態で開く ---- */
+  loadSample();
+})();
+</script>
+</body>
+</html>
