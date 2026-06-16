@@ -183,6 +183,22 @@
   }
   .example h3{ font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--ai); }
   .example p{ font-size: 12px; color: var(--usuzumi); }
+  /* 実物見本ショーケース */
+  .sample-showcase{ grid-template-columns: 1fr; margin-bottom: 16px; }
+  .example-sample{
+    border: 1px solid var(--sumire);
+    border-left: 4px solid var(--sumire);
+    background: #fff;
+  }
+  .example-sample h3{ font-size: 14px; }
+  .example-sample p{ font-size: 13px; color: var(--sumi); }
+  .sample-link{
+    display: inline-block; margin-top: 12px;
+    background: var(--sumire); color: #fff; text-decoration: none;
+    border-radius: 6px; padding: 9px 20px; font-size: 13px; font-weight: 700;
+    transition: filter .12s ease;
+  }
+  .sample-link:hover{ filter: brightness(1.07); }
   .contact-links{
     display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
   }
@@ -316,6 +332,13 @@
     <h2>カスタマイズのご相談</h2>
     <div class="custom-cta">
       <p class="custom-lead">「ロゴを入れたい」「会社の書式に合わせたい」「英語版が欲しい」—— 無料ツールをベースに、あなた専用の版を作ります。</p>
+      <div class="custom-examples sample-showcase">
+        <div class="example example-sample">
+          <h3>🛠️ 実物の見本を触れます</h3>
+          <p>建設業むけにカスタムした「専用 工事見積書ツール」の見本です。屋号・登録番号は記入ずみ、工事名・工事場所・工期の項目を追加、配色も建設向けに変更。これが納品物のイメージです。</p>
+          <a class="sample-link" href="./samples/kensetsu-mitsumori/" target="_blank" rel="noopener">見本を開いて触ってみる →</a>
+        </div>
+      </div>
       <div class="custom-examples">
         <div class="example">
           <h3>🏷️ ロゴ・屋号の埋め込み</h3>
