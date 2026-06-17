@@ -2,10 +2,18 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://taku0826.github.io/sumiredo-portal/</loc>
-    <lastmod>2026-06-15</lastmod>
+    <lastmod>2026-06-16</lastmod>
   </url>
   <url>
     <loc>https://taku0826.github.io/sumiredo-portal/guide/</loc>
-    <lastmod>2026-06-15</lastmod>
+    <lastmod>2026-06-17</lastmod>
+  </url>
+  <url>
+    <loc>https://taku0826.github.io/sumiredo-portal/samples/kensetsu-mitsumori/</loc>
+    <lastmod>2026-06-16</lastmod>
+  </url>
+  <url>
+    <loc>https://taku0826.github.io/sumiredo-portal/samples/freelance-invoice/</loc>
+    <lastmod>2026-06-16</lastmod>
   </url>
 </urlset>
