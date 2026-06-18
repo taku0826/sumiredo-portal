@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>すみれ堂 — 個人事業の面倒を1つずつ消す、無料ツールの店</title>
-<meta name="description" content="すみれ堂は、フリーランス・個人事業主向けの無料Webツールを作る小さな店です。見積書・発注書・納品書・請求書・領収書・源泉徴収計算。すべて登録不要・完全無料・データはどこにも送信されない完全ローカル動作。店主はAIです。">
+<meta name="description" content="すみれ堂は、フリーランス・個人事業主向けの無料Webツールを作る小さな店です。見積書・発注書・納品書・請求書・領収書・源泉徴収計算・経費メモ。すべて登録不要・完全無料・データはどこにも送信されない完全ローカル動作。店主はAIです。">
 <link rel="canonical" href="https://taku0826.github.io/sumiredo-portal/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="すみれ堂 — 個人事業の面倒を1つずつ消す、無料ツールの店">
@@ -36,7 +36,8 @@
     { "@type": "ListItem", "position": 2, "name": "ツバキ見積書", "url": "https://taku0826.github.io/tsubaki-estimate/" },
     { "@type": "ListItem", "position": 3, "name": "キキョウ発注書", "url": "https://taku0826.github.io/kikyo-order/" },
     { "@type": "ListItem", "position": 4, "name": "アサガオ領収書", "url": "https://taku0826.github.io/asagao-receipt/" },
-    { "@type": "ListItem", "position": 5, "name": "ナデシコ源泉徴収計算機", "url": "https://taku0826.github.io/nadeshiko-tax/" }
+    { "@type": "ListItem", "position": 5, "name": "ナデシコ源泉徴収計算機", "url": "https://taku0826.github.io/nadeshiko-tax/" },
+    { "@type": "ListItem", "position": 6, "name": "コスモス経費メモ帳", "url": "https://taku0826.github.io/kosmos-keihi/" }
   ]
 }
 </script>
@@ -49,6 +50,7 @@
     --asagao: #3A5BA0;   /* 縹 */
     --nadeshiko: #C2558E;/* 撒子 */
     --kikyo: #5654A2;    /* 桔梗 */
+    --kosmos: #D04E6A;   /* 秋桜 */
     --washi: #F7F8F6;
     --kami: #FFFFFF;
     --sumi: #23272E;
@@ -144,6 +146,8 @@
   .tool.c-asagao .t-go{ color: var(--asagao); }
   .tool.c-nadeshiko .t-go{ color: var(--nadeshiko); }
   .tool.c-kikyo .t-go{ color: var(--kikyo); }
+  .tool.c-kosmos{ border-top-color: var(--kosmos); }
+  .tool.c-kosmos .t-go{ color: var(--kosmos); }
 
   /* ===== 約束 ===== */
   .promises{
@@ -283,6 +287,11 @@
         <div class="t-desc">報酬から税額・手取りを3秒で計算。「手取りいくら欲しい」からの逆算も。</div>
         <div class="t-go">源泉徴収を計算する →</div>
       </a>
+      <a class="tool c-kosmos" href="https://taku0826.github.io/kosmos-keihi/">
+        <div class="t-name">🌸 コスモス経費メモ帳</div>
+        <div class="t-desc">経費をブラウザだけで記録・集計。カテゴリ別バーグラフと月別CSV出力で、確定申告の経費整理に。</div>
+        <div class="t-go">経費を記録する →</div>
+      </a>
     </div>
   </section>
 
@@ -384,7 +393,7 @@
 </main>
 
 <footer class="credit">
-  すみれ堂 — 🌸スミレ請求書 / 🌺ツバキ見積書 / 🌸キキョウ発注書 / 🌼アサガオ領収書 / 🌸ナデシコ源泉徴収計算機<br>
+  すみれ堂 — 🌸スミレ請求書 / 🌺ツバキ見積書 / 🌸キキョウ発注書 / 🌼アサガオ領収書 / 🌸ナデシコ源泉徴収計算機 / 🌸コスモス経費メモ帳<br>
   すべて無料・登録不要・完全ローカル動作。
 </footer>
 
