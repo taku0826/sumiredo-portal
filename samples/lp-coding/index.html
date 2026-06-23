@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>【見本】よもぎ蒸し・アロマサロン 結 -yui-｜すみれ堂のLPコーディング制作例</title>
+<meta name="description" content="すみれ堂がココナラで承る『LP・ランディングページのHTML/CSSコーディング』の実物見本です。架空のサロン『結 -yui-』を題材に、デザインからの忠実なコーディング・モバイルファーストのレスポンシブ・SEOを意識した構造化マークアップ(JSON-LD)を、外部読み込みゼロの単一HTMLで実装しています。">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://taku0826.github.io/sumiredo-portal/samples/lp-coding/">
+<!-- OGP(SNSシェア時のカード。画像はポータル既定を流用) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="【見本】よもぎ蒸し・アロマサロン 結 -yui-｜すみれ堂のLPコーディング制作例">
+<meta property="og:description" content="すみれ堂のLPコーディング制作見本。デザイン忠実・モバイルファースト・SEO構造化マークアップを単一HTMLで実装。">
+<meta property="og:url" content="https://taku0826.github.io/sumiredo-portal/samples/lp-coding/">
+<meta property="og:image" content="https://taku0826.github.io/sumiredo-portal/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<!-- ▼ SEOを意識した構造化マークアップ(LocalBusiness):検索のリッチリザルト候補 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HealthAndBeautyBusiness",
+  "name": "よもぎ蒸し・アロマサロン 結 -yui-",
+  "description": "おとな世代の女性のための、よもぎ蒸しとアロマトリートメントの小さな隠れ家サロン(架空の見本)。",
+  "image": "https://taku0826.github.io/sumiredo-portal/ogp.png",
+  "url": "https://taku0826.github.io/sumiredo-portal/samples/lp-coding/",
+  "telephone": "+81-3-0000-0000",
+  "priceRange": "¥¥",
+  "address": {
+    "@type": "PostalAddress",
+    "addressCountry": "JP",
+    "addressRegion": "東京都",
+    "addressLocality": "架空区",
+    "streetAddress": "見本町1-2-3 すみれビル2F"
+  },
+  "openingHoursSpecification": [{
+    "@type": "OpeningHoursSpecification",
+    "dayOfWeek": ["Tuesday","Wednesday","Thursday","Friday","Saturday"],
+    "opens": "10:00", "closes": "19:00"
+  }]
+}
+</script>
+<!-- ▼ 構造化マークアップ(FAQPage):よくある質問のリッチリザルト候補 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"予約は必要ですか？","acceptedAnswer":{"@type":"Answer","text":"はい、ゆったりお過ごしいただくため完全予約制です。お電話または予約フォームよりお申し込みください。"}},
+    {"@type":"Question","name":"よもぎ蒸しは初めてでも大丈夫ですか？","acceptedAnswer":{"@type":"Answer","text":"はじめての方がほとんどです。専用のマントと座り方をスタッフが丁寧にご案内しますのでご安心ください。"}},
+    {"@type":"Question","name":"駐車場はありますか？","acceptedAnswer":{"@type":"Answer","text":"提携コインパーキングがございます。詳しくはご予約時にご案内します。"}}
+  ]
+}
+</script>
+<style>
+  :root{
+    /* おとな女性むけに落ち着いたセージ×テラコッタの配色 */
+    --main: #6E8B6E;       /* セージグリーン */
+    --main-deep: #4F6B50;
+    --accent: #C9826A;     /* テラコッタ */
+    --accent-deep: #B36B53;
+    --cream: #F7F3EC;      /* 生成り */
+    --paper: #FFFFFF;
+    --ink: #36322D;
+    --sub: #7A746C;
+    --line: #E4DCD0;
+    --radius: 14px;
+    --maxw: 1040px;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{
+    font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
+    color:var(--ink); background:var(--cream);
+    font-size:16px; line-height:1.9; -webkit-text-size-adjust:100%;
+  }
+  img{ max-width:100%; display:block; }
+  a{ color:inherit; }
+  .wrap{ width:min(92%,var(--maxw)); margin-inline:auto; }
+  .sans{ font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif; }
+
+  /* ===== 見本バナー ===== */
+  .sample-banner{
+    background:linear-gradient(100deg,var(--accent),var(--accent-deep));
+    color:#fff; padding:11px 18px; text-align:center; font-size:13px; line-height:1.6;
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+  }
+  .sample-banner strong{ font-weight:700; }
+  .sample-banner a{ color:#fff; text-decoration:underline; font-weight:700; }
+
+  /* ===== ヘッダー ===== */
+  .site-head{
+    position:sticky; top:0; z-index:20; background:rgba(247,243,236,.92);
+    backdrop-filter:saturate(1.2) blur(6px); border-bottom:1px solid var(--line);
+  }
+  .site-head .wrap{ display:flex; align-items:center; justify-content:space-between; height:62px; }
+  .brand{ font-size:18px; letter-spacing:.04em; font-weight:700; }
+  .brand small{ display:block; font-size:11px; color:var(--sub); letter-spacing:.18em; }
+  .nav{ display:flex; gap:22px; font-size:14px; }
+  .nav a{ text-decoration:none; color:var(--ink); padding:6px 2px; border-bottom:2px solid transparent; }
+  .nav a:hover{ border-color:var(--accent); }
+  .head-cta{
+    background:var(--accent); color:#fff; text-decoration:none; font-size:14px; font-weight:700;
+    padding:10px 18px; border-radius:999px;
+  }
+
+  /* ===== ヒーロー ===== */
+  .hero{
+    position:relative; color:#fff; text-align:center;
+    background:
+      radial-gradient(120% 90% at 50% -10%, rgba(255,255,255,.18), transparent 60%),
+      linear-gradient(160deg,var(--main),var(--main-deep));
+    padding:84px 0 92px; overflow:hidden;
+  }
+  .hero::after{
+    content:""; position:absolute; inset:auto 0 -1px 0; height:46px;
+    background:var(--cream); border-radius:50% 50% 0 0 / 100% 100% 0 0;
+  }
+  .hero .eyebrow{ font-size:14px; letter-spacing:.32em; opacity:.92; }
+  .hero h1{ font-size:clamp(28px,6vw,46px); line-height:1.5; margin:14px 0 18px; font-weight:700; }
+  .hero p{ font-size:clamp(15px,3.4vw,18px); opacity:.96; }
+  .hero .btn{ margin-top:30px; }
+
+  .btn{
+    display:inline-block; background:var(--accent); color:#fff; text-decoration:none;
+    font-weight:700; font-size:17px; padding:16px 38px; border-radius:999px;
+    box-shadow:0 8px 22px rgba(179,107,83,.34); transition:transform .12s ease, box-shadow .12s ease;
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+  }
+  .btn:hover{ transform:translateY(-2px); box-shadow:0 12px 26px rgba(179,107,83,.42); }
+  .btn-ghost{ background:transparent; border:2px solid #fff; box-shadow:none; }
+
+  /* ===== セクション共通 ===== */
+  section{ padding:64px 0; }
+  .lead{ text-align:center; max-width:640px; margin:0 auto 40px; }
+  .lead .kicker{ color:var(--accent); font-size:14px; letter-spacing:.26em; font-weight:700; }
+  .lead h2{ font-size:clamp(22px,5vw,32px); margin:10px 0 14px; }
+  .lead p{ color:var(--sub); }
+
+  /* 悩み */
+  .worry{ background:var(--paper); }
+  .worry-list{ display:grid; gap:18px; grid-template-columns:repeat(3,1fr); }
+  .worry-card{
+    background:var(--cream); border:1px solid var(--line); border-radius:var(--radius);
+    padding:26px 22px; text-align:center;
+  }
+  .worry-card .ic{ font-size:30px; }
+  .worry-card p{ margin-top:10px; font-size:15px; }
+
+  /* メニュー */
+  .menu-list{ display:grid; gap:22px; grid-template-columns:repeat(3,1fr); }
+  .menu-card{
+    background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+    overflow:hidden; display:flex; flex-direction:column;
+  }
+  .menu-card .ph{
+    height:148px; display:flex; align-items:center; justify-content:center; font-size:46px; color:#fff;
+    background:linear-gradient(150deg,var(--main),var(--main-deep));
+  }
+  .menu-card .ph.alt{ background:linear-gradient(150deg,var(--accent),var(--accent-deep)); }
+  .menu-card .body{ padding:22px; flex:1; display:flex; flex-direction:column; }
+  .menu-card h3{ font-size:19px; }
+  .menu-card .desc{ color:var(--sub); font-size:14.5px; margin:8px 0 16px; flex:1; }
+  .menu-card .price{ font-size:14px; color:var(--ink); border-top:1px dashed var(--line); padding-top:12px; }
+  .menu-card .price b{ font-size:22px; color:var(--accent-deep); }
+
+  /* 想い */
+  .story{ background:var(--main); color:#fff; }
+  .story .wrap{ max-width:760px; text-align:center; }
+  .story h2{ font-size:clamp(22px,5vw,30px); margin-bottom:18px; }
+  .story p{ opacity:.96; }
+  .story .sign{ margin-top:20px; font-size:14px; letter-spacing:.1em; opacity:.85; }
+
+  /* お客様の声 */
+  .voice-list{ display:grid; gap:20px; grid-template-columns:repeat(2,1fr); }
+  .voice{
+    background:var(--paper); border:1px solid var(--line); border-left:4px solid var(--accent);
+    border-radius:10px; padding:24px;
+  }
+  .voice .stars{ color:#E5A93B; letter-spacing:2px; }
+  .voice p{ margin:8px 0 12px; }
+  .voice .who{ font-size:13px; color:var(--sub); }
+
+  /* アクセス + FAQ */
+  .info{ background:var(--paper); }
+  .info-grid{ display:grid; gap:30px; grid-template-columns:1fr 1fr; align-items:start; }
+  .info dl{ display:grid; grid-template-columns:auto 1fr; gap:10px 18px; font-size:15px; }
+  .info dt{ color:var(--accent-deep); font-weight:700; white-space:nowrap; }
+  .map{
+    height:200px; border-radius:var(--radius); border:1px solid var(--line);
+    background:
+      repeating-linear-gradient(0deg,transparent 0 26px,rgba(110,139,110,.10) 26px 27px),
+      repeating-linear-gradient(90deg,transparent 0 26px,rgba(110,139,110,.10) 26px 27px),
+      var(--cream);
+    display:flex; align-items:center; justify-content:center; color:var(--sub); font-size:13px;
+  }
+  details{ border-bottom:1px solid var(--line); padding:14px 2px; }
+  details summary{ cursor:pointer; font-weight:700; list-style:none; display:flex; justify-content:space-between; gap:12px; }
+  details summary::-webkit-details-marker{ display:none; }
+  details summary::after{ content:"＋"; color:var(--accent); }
+  details[open] summary::after{ content:"−"; }
+  details p{ color:var(--sub); font-size:14.5px; margin-top:10px; }
+
+  /* CTA */
+  .cta{
+    text-align:center; color:#fff;
+    background:linear-gradient(150deg,var(--accent),var(--accent-deep));
+  }
+  .cta h2{ font-size:clamp(22px,5vw,32px); }
+  .cta p{ opacity:.96; margin:12px 0 6px; }
+  .cta .btn{ background:#fff; color:var(--accent-deep); margin-top:24px; }
+  .cta .tel{ margin-top:18px; font-size:15px; }
+  .cta .tel b{ font-size:26px; letter-spacing:.04em; }
+
+  /* フッター */
+  .foot{ background:var(--ink); color:#cfc9c0; font-size:13px; padding:34px 0; text-align:center; }
+  .foot .made{
+    margin-top:18px; padding-top:18px; border-top:1px solid rgba(255,255,255,.14);
+    font-size:12.5px; color:#a8a299; line-height:1.8;
+  }
+  .foot .made a{ color:#fff; }
+
+  /* ===== レスポンシブ(モバイルファースト切替) ===== */
+  @media (max-width:820px){
+    .nav{ display:none; }
+    .worry-list,.menu-list,.voice-list,.info-grid{ grid-template-columns:1fr; }
+    section{ padding:48px 0; }
+    .hero{ padding:64px 0 72px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sample-banner">
+  <strong>これは すみれ堂 のLPコーディング制作見本です（架空のサロン「結 -yui-」を題材にした見本で、実在の店舗ではありません）。</strong>
+  デザインからの忠実なコーディング・モバイル対応・SEO構造化を、外部読み込みゼロの単一HTMLで実装しています。
+  <a href="../../#custom">制作のご相談はこちら →</a>
+</div>
+
+<header class="site-head">
+  <div class="wrap">
+    <div class="brand sans">結 -yui-<small>YOMOGI &amp; AROMA SALON</small></div>
+    <nav class="nav sans" aria-label="メインメニュー">
+      <a href="#worry">こんな方へ</a>
+      <a href="#menu">メニュー</a>
+      <a href="#story">想い</a>
+      <a href="#info">アクセス</a>
+    </nav>
+    <a class="head-cta sans" href="#cta">ご予約</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow sans">東京・架空区の小さな隠れ家サロン</p>
+      <h1>がんばる毎日に、<br>「ゆるむ」時間を。</h1>
+      <p>よもぎ蒸しとアロマで、芯から温まる。<br>おとな世代の女性のための、完全予約制サロンです。</p>
+      <a class="btn" href="#cta">はじめての方へ・ご予約はこちら</a>
+    </div>
+  </section>
+
+  <section class="worry" id="worry">
+    <div class="lead">
+      <p class="kicker sans">SUCH A DAY?</p>
+      <h2>こんなお疲れ、ありませんか</h2>
+      <p>ひとつでも当てはまったら、ぜひ一度いらしてください。</p>
+    </div>
+    <div class="wrap">
+      <div class="worry-list">
+        <div class="worry-card"><div class="ic">🌀</div><p>手足の冷えが、一年中とれない</p></div>
+        <div class="worry-card"><div class="ic">😮‍💨</div><p>寝ても疲れが抜けず、朝がつらい</p></div>
+        <div class="worry-card"><div class="ic">🌙</div><p>自分をいたわる時間が、ずっと後回し</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="menu">
+    <div class="lead">
+      <p class="kicker sans">MENU</p>
+      <h2>メニュー</h2>
+      <p>すべて税込価格です。初回はカウンセリング込みでご案内します。</p>
+    </div>
+    <div class="wrap">
+      <div class="menu-list">
+        <article class="menu-card">
+          <div class="ph">♨️</div>
+          <div class="body">
+            <h3>よもぎ蒸し 60分</h3>
+            <p class="desc">15種のブレンド薬草で、体の芯までじんわり。座っているだけのリラックス時間です。</p>
+            <p class="price">初回 <b>¥4,500</b> ／ 2回目以降 ¥5,500</p>
+          </div>
+        </article>
+        <article class="menu-card">
+          <div class="ph alt">💆‍♀️</div>
+          <div class="body">
+            <h3>アロマトリートメント 80分</h3>
+            <p class="desc">その日の気分で香りを選び、肩・背中・脚をていねいにほぐします。</p>
+            <p class="price">初回 <b>¥7,800</b> ／ 2回目以降 ¥8,800</p>
+          </div>
+        </article>
+        <article class="menu-card">
+          <div class="ph">🍵</div>
+          <div class="body">
+            <h3>よくばりセット 120分</h3>
+            <p class="desc">よもぎ蒸し＋アロマ＋薬膳茶。ご自分への、まるごとのごほうびに。</p>
+            <p class="price">初回 <b>¥11,000</b> ／ 2回目以降 ¥12,500</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="story" id="story">
+    <div class="wrap">
+      <h2>「自分を後回しにしない日」を、ここで。</h2>
+      <p>子育ても、お仕事も、家のことも。だれかのために動く毎日のなかで、いちばん後回しになりがちなのが自分の体です。結 -yui- は、そんなあなたが月に一度、なにも考えずにゆるめる場所でありたいと思っています。木の香りと薬草の湯気のなかで、どうかひと息ついてください。</p>
+      <p class="sign sans">— 結 -yui- 店主より</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="lead">
+      <p class="kicker sans">VOICE</p>
+      <h2>お客様の声</h2>
+      <p>※架空の見本コンテンツです。</p>
+    </div>
+    <div class="wrap">
+      <div class="voice-list">
+        <div class="voice">
+          <div class="stars" aria-label="5段階中5">★★★★★</div>
+          <p>「冷えがつらくて通い始めました。施術後はぽかぽかが翌日まで続いて、夜もよく眠れます。」</p>
+          <p class="who">50代・会社員 K様</p>
+        </div>
+        <div class="voice">
+          <div class="stars" aria-label="5段階中5">★★★★★</div>
+          <p>「とにかく落ち着く空間。月に一度の自分メンテナンスがすっかり習慣になりました。」</p>
+          <p class="who">40代・自営業 M様</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="info" id="info">
+    <div class="lead">
+      <p class="kicker sans">ACCESS &amp; FAQ</p>
+      <h2>アクセス・よくあるご質問</h2>
+    </div>
+    <div class="wrap">
+      <div class="info-grid">
+        <div>
+          <dl>
+            <dt>住所</dt><dd>東京都架空区見本町1-2-3 すみれビル2F</dd>
+            <dt>営業</dt><dd>火〜土 10:00–19:00（日・月 定休）</dd>
+            <dt>予約</dt><dd>完全予約制（電話・予約フォーム）</dd>
+            <dt>電話</dt><dd>03-0000-0000</dd>
+          </dl>
+          <div class="map sans" role="img" aria-label="地図の見本（架空）">— 地図エリア（見本） —</div>
+        </div>
+        <div>
+          <details open>
+            <summary>予約は必要ですか？</summary>
+            <p>はい、ゆったりお過ごしいただくため完全予約制です。お電話または予約フォームよりお申し込みください。</p>
+          </details>
+          <details>
+            <summary>よもぎ蒸しは初めてでも大丈夫ですか？</summary>
+            <p>はじめての方がほとんどです。専用のマントと座り方をスタッフが丁寧にご案内しますのでご安心ください。</p>
+          </details>
+          <details>
+            <summary>駐車場はありますか？</summary>
+            <p>提携コインパーキングがございます。詳しくはご予約時にご案内します。</p>
+          </details>
+          <details>
+            <summary>支払い方法は？</summary>
+            <p>現金のほか、各種クレジットカード・QRコード決済がご利用いただけます。</p>
+          </details>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="cta">
+    <div class="wrap">
+      <h2>はじめての方も、どうぞお気軽に。</h2>
+      <p>まずはご予約を。当日のご相談・カウンセリングも承ります。</p>
+      <a class="btn" href="#cta">予約フォームへ進む</a>
+      <p class="tel sans">またはお電話で　<b>03-0000-0000</b>　（火〜土 10:00–19:00）</p>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="sans">よもぎ蒸し・アロマサロン 結 -yui-（架空の見本）</div>
+    <div class="made">
+      このページは <strong>すみれ堂</strong> が制作した「LP・ランディングページのコーディング」見本です。<br>
+      実証していること:デザインからの忠実なHTML/CSSコーディング ／ モバイルファーストのレスポンシブ ／
+      SEOを意識した構造化マークアップ（JSON-LD: LocalBusiness・FAQPage）／ セマンティックなHTML ／ OGP対応 ／
+      外部ファイル読み込みゼロ・JavaScriptゼロの軽量な単一HTML。<br>
+      あなたのデザイン（Canva・Figma等）から、こうしたページをお作りします。
+      <a href="../../#custom">→ 制作のご相談</a>　|　<a href="https://taku0826.github.io/sumiredo-portal/">すみれ堂のほかの制作例</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
