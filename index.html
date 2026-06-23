@@ -45,12 +45,12 @@
   :root{
     --ai: #1B2A4A;
     --ai-deep: #11203B;
-    --sumire: #6B5CA5;   /* 菁 */
-    --tsubaki: #9D2235;  /* 紅 */
-    --asagao: #3A5BA0;   /* 縹 */
-    --nadeshiko: #C2558E;/* 撒子 */
-    --kikyo: #5654A2;    /* 桔梗 */
-    --kosmos: #D04E6A;   /* 秋桜 */
+    --sumire: #6B5CA5;
+    --tsubaki: #9D2235;
+    --asagao: #3A5BA0;
+    --nadeshiko: #C2558E;
+    --kikyo: #5654A2;
+    --kosmos: #D04E6A;
     --washi: #F7F8F6;
     --kami: #FFFFFF;
     --sumi: #23272E;
@@ -67,8 +67,6 @@
     line-height: 1.8;
   }
   a{ color: var(--ai); }
-
-  /* ===== ヒーロー ===== */
   .hero{
     background: linear-gradient(160deg, var(--ai) 0%, var(--ai-deep) 100%);
     color: #fff;
@@ -97,9 +95,7 @@
     padding: 5px 14px;
     background: rgba(255,255,255,.08);
   }
-
   main{ max-width: 880px; margin: 0 auto; padding: 0 20px 60px; }
-
   section{ margin-top: 48px; }
   section h2{
     font-size: 16px; color: var(--ai); letter-spacing: .2em;
@@ -107,8 +103,6 @@
     padding-left: 10px;
     margin-bottom: 20px;
   }
-
-  /* ===== 商品カード ===== */
   .tools{
     display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
   }
@@ -148,8 +142,6 @@
   .tool.c-kikyo .t-go{ color: var(--kikyo); }
   .tool.c-kosmos{ border-top-color: var(--kosmos); }
   .tool.c-kosmos .t-go{ color: var(--kosmos); }
-
-  /* ===== 約束 ===== */
   .promises{
     display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
   }
@@ -162,8 +154,6 @@
   }
   .promise h3{ font-size: 14px; margin-bottom: 6px; }
   .promise p{ font-size: 13px; color: var(--usuzumi); }
-
-  /* ===== カスタマイズ受注 ===== */
   .custom-cta{
     background: var(--kami);
     border: 1px solid var(--keisen);
@@ -187,7 +177,6 @@
   }
   .example h3{ font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--ai); }
   .example p{ font-size: 12px; color: var(--usuzumi); }
-  /* 実物見本ショーケース */
   .sample-showcase{ grid-template-columns: 1fr 1fr; margin-bottom: 16px; }
   @media (max-width: 640px){ .sample-showcase{ grid-template-columns: 1fr; } }
   .example-sample{
@@ -221,8 +210,6 @@
   .btn-contact-mail{ font-size: 13px; color: var(--ai); }
   .contact-or{ font-size: 13px; color: var(--usuzumi); }
   .custom-note{ margin-top: 14px; font-size: 12px; color: var(--usuzumi); }
-
-  /* ===== 店舗情報 ===== */
   .about{
     background: var(--kami);
     border: 1px solid var(--keisen);
@@ -231,7 +218,6 @@
   }
   .about p{ font-size: 14px; margin-bottom: 12px; }
   .about p:last-child{ margin-bottom: 0; }
-
   footer.credit{
     text-align: center; font-size: 12px; color: var(--usuzumi);
     padding: 26px 20px 40px;
@@ -239,7 +225,6 @@
     margin-top: 56px;
   }
   footer.credit a{ color: var(--ai); }
-
   @media (prefers-reduced-motion: reduce){ *{ transition: none !important; } }
 </style>
 </head>
@@ -355,7 +340,7 @@
     <h2>専用ツールの制作・ご相談</h2>
     <div class="custom-cta">
       <p class="custom-lead">「ロゴを入れたい」「集計表を自動化したい」「料金シミュレーターが欲しい」「お店のLPをコーディングしてほしい」—— 書類の専用カスタマイズ・集計/計算ツールの新規作成から、LP・ページのHTML/CSSコーディングまで。すべてブラウザで動く単一HTMLファイルでお渡しします。</p>
-      <p class="custom-lead" style="margin-top:-6px;"><strong>「専用版」の実物見本を、そのまま触れます。</strong>業種ごとに、項目も配色も変えてお作りします(下は架空の事業者を例にした見本です)。</p>
+      <p class="custom-lead" style="margin-top:-6px;"><strong>「専用版」の実物見本を、そのまま触れます。</strong>業種・用途ごとに、項目も配色も変えてお作りします(下は架空の事業者を例にした見本です)。</p>
       <div class="custom-examples sample-showcase">
         <div class="example example-sample">
           <h3>🏗️ 建設業むけ:工事見積書ツール</h3>
@@ -371,6 +356,11 @@
           <h3>🌿 サロン・お店むけ:LP(ランディングページ)</h3>
           <p>Canva・Figmaのデザインから、<strong>デザイン忠実・スマホ対応・SEO構造化マークアップ</strong>の1枚ページを単一HTMLでコーディング。読み込み速く、軽い。</p>
           <a class="sample-link" href="./samples/lp-coding/" target="_blank" rel="noopener">LPの見本を見てみる →</a>
+        </div>
+        <div class="example example-sample">
+          <h3>📊 サービス業むけ:料金シミュレーター</h3>
+          <p>施術・撮影・レッスンなど<strong>コース×オプション料金を自動計算</strong>。Excelの価格表を、ブラウザで選ぶだけのツールに置き換えます。</p>
+          <a class="sample-link" href="./samples/price-simulator/" target="_blank" rel="noopener">シミュレーターの見本を触ってみる →</a>
         </div>
       </div>
       <div class="custom-examples">

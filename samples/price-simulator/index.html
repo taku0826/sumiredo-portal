@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>撮影プランシミュレーター — はな フォトスタジオ</title>
+<meta name="description" content="すみれ堂の制作見本：撮影スタジオ向け料金シミュレーター。コースとオプションを選ぶだけで料金を自動計算。印刷対応の単一HTMLファイル。">
+<style>
+:root{
+  --brand:#B85C5C;
+  --brand-dark:#8B3A3A;
+  --brand-bg:#FDF5F5;
+  --brand-light:#F3E0E0;
+  --kami:#FFFFFF;
+  --washi:#FAF9F7;
+  --sumi:#222222;
+  --usuzumi:#6B7280;
+  --keisen:#E8DADA;
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP","Meiryo",sans-serif;
+  background:var(--washi);
+  color:var(--sumi);
+  font-size:15px;
+  line-height:1.75;
+}
+.site-header{
+  background:var(--brand);
+  color:#fff;
+  text-align:center;
+  padding:32px 20px 24px;
+}
+.studio-label{
+  font-size:11px;
+  letter-spacing:.25em;
+  opacity:.8;
+  margin-bottom:8px;
+  text-transform:uppercase;
+}
+.site-header h1{
+  font-size:26px;
+  font-weight:700;
+  letter-spacing:.06em;
+  margin-bottom:6px;
+}
+.site-header .sub{
+  font-size:13px;
+  opacity:.85;
+}
+.sample-banner{
+  background:var(--brand-light);
+  border-bottom:2px dashed var(--brand);
+  padding:10px 20px;
+  font-size:12px;
+  color:var(--brand-dark);
+  text-align:center;
+  line-height:1.6;
+}
+.sample-banner a{color:var(--brand-dark);font-weight:700;}
+.layout{
+  max-width:900px;
+  margin:0 auto;
+  padding:28px 20px 60px;
+  display:grid;
+  grid-template-columns:1fr 360px;
+  gap:24px;
+  align-items:start;
+}
+@media(max-width:680px){.layout{grid-template-columns:1fr;}}
+.panel{
+  background:var(--kami);
+  border:1px solid var(--keisen);
+  border-radius:var(--r);
+  padding:22px 24px;
+  margin-bottom:16px;
+}
+.panel:last-child{margin-bottom:0;}
+.panel-title{
+  font-size:13px;
+  font-weight:700;
+  color:var(--brand-dark);
+  letter-spacing:.12em;
+  border-bottom:2px solid var(--brand-light);
+  padding-bottom:10px;
+  margin-bottom:16px;
+}
+.select-label{
+  font-size:11px;
+  color:var(--usuzumi);
+  letter-spacing:.1em;
+  font-weight:700;
+  display:block;
+  margin-bottom:8px;
+}
+.choice-list{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  margin-bottom:20px;
+}
+.choice-list:last-child{margin-bottom:0;}
+.choice{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:9px 12px;
+  border:1px solid var(--keisen);
+  border-radius:8px;
+  cursor:pointer;
+  transition:background .08s,border-color .08s;
+  user-select:none;
+}
+.choice:hover{background:var(--brand-bg);border-color:var(--brand);}
+.choice.active{background:var(--brand-bg);border-color:var(--brand);}
+.choice input{accent-color:var(--brand);width:15px;height:15px;flex-shrink:0;}
+.c-name{flex:1;font-size:13px;}
+.c-price{font-size:12px;color:var(--usuzumi);white-space:nowrap;font-family:"Helvetica Neue",Arial,sans-serif;}
+.price-wrap{position:sticky;top:20px;}
+.price-card{
+  background:var(--kami);
+  border:1px solid var(--keisen);
+  border-top:4px solid var(--brand);
+  border-radius:var(--r);
+  padding:22px 24px;
+}
+.price-card-title{
+  font-size:13px;
+  font-weight:700;
+  color:var(--brand-dark);
+  letter-spacing:.1em;
+  margin-bottom:16px;
+}
+.breakdown{border-top:1px solid var(--keisen);padding-top:12px;}
+.brow{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  padding:5px 0;
+  font-size:13px;
+  border-bottom:1px dotted var(--keisen);
+}
+.brow.subtotal{border-bottom:2px solid var(--keisen);padding-bottom:10px;margin-top:4px;}
+.brow-tax{color:var(--usuzumi);font-size:12px;}
+.brow-total{font-weight:700;border-bottom:none;padding-top:10px;color:var(--brand-dark);}
+.b-label{max-width:60%;}
+.b-amount{font-family:"Helvetica Neue",Arial,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.brow-total .b-amount{font-size:20px;}
+.sel-summary{
+  margin-top:14px;
+  background:var(--brand-bg);
+  border-radius:8px;
+  padding:12px 14px;
+}
+.sel-summary-title{
+  font-size:11px;
+  font-weight:700;
+  color:var(--brand-dark);
+  letter-spacing:.1em;
+  margin-bottom:6px;
+}
+.sel-summary-body{
+  font-size:12px;
+  color:var(--sumi);
+  white-space:pre-line;
+  line-height:1.7;
+}
+.price-note{margin-top:12px;font-size:11px;color:var(--usuzumi);line-height:1.7;}
+.btn-print{
+  display:block;
+  width:100%;
+  margin-top:16px;
+  padding:12px;
+  background:var(--brand);
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  letter-spacing:.05em;
+  transition:background .12s;
+}
+.btn-print:hover{background:var(--brand-dark);}
+.site-footer{
+  text-align:center;
+  padding:24px 20px 40px;
+  font-size:12px;
+  color:var(--usuzumi);
+  border-top:1px solid var(--keisen);
+  background:var(--kami);
+  margin-top:20px;
+}
+.site-footer a{color:var(--usuzumi);}
+@media print{
+  .site-header,.sample-banner,.panel,.btn-print,.site-footer,.price-note{display:none!important;}
+  .layout{display:block;padding:0;}
+  .price-wrap{position:static;}
+  .price-card{border:1px solid #999;border-top:2px solid #999;box-shadow:none;}
+  .sel-summary{background:#f5f5f5;}
+  @page{margin:15mm;}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;}}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="studio-label">Photo Studio</div>
+  <h1>はな フォトスタジオ</h1>
+  <p class="sub">撮影プラン 料金シミュレーター</p>
+</header>
+
+<div class="sample-banner">
+  ⚠️ これはすみれ堂の<strong>制作見本</strong>です(架空スタジオ)。同じような料金シミュレーター・集計ツール・書類ツールを作ります →
+  <a href="https://taku0826.github.io/sumiredo-portal/#custom" target="_blank" rel="noopener">すみれ堂に依頼する</a>
+</div>
+
+<div class="layout">
+  <div>
+    <div class="panel">
+      <div class="panel-title">撮影コースを選ぶ</div>
+      <span class="select-label">コース（1つ選択）</span>
+      <div class="choice-list" id="grp-course">
+        <label class="choice active" data-val="16000">
+          <input type="radio" name="course" value="16000" checked>
+          <span class="c-name">ポートレート / 30分 / 12カット</span>
+          <span class="c-price">¥16,000</span>
+        </label>
+        <label class="choice" data-val="24000">
+          <input type="radio" name="course" value="24000">
+          <span class="c-name">ポートレート / 60分 / 25カット</span>
+          <span class="c-price">¥24,000</span>
+        </label>
+        <label class="choice" data-val="38000">
+          <input type="radio" name="course" value="38000">
+          <span class="c-name">家族写真 / 90分 / 40カット</span>
+          <span class="c-price">¥38,000</span>
+        </label>
+        <label class="choice" data-val="12000">
+          <input type="radio" name="course" value="12000">
+          <span class="c-name">ビジネスプロフィール / 30分 / 10カット</span>
+          <span class="c-price">¥12,000</span>
+        </label>
+        <label class="choice" data-val="8000">
+          <input type="radio" name="course" value="8000">
+          <span class="c-name">証明写真 / 5種セット</span>
+          <span class="c-price">¥8,000</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">オプションを追加する</div>
+
+      <span class="select-label">データ納品方法</span>
+      <div class="choice-list">
+        <label class="choice active">
+          <input type="radio" name="delivery" value="0" checked>
+          <span class="c-name">オンラインダウンロード（1ヶ月）</span>
+          <span class="c-price">無料</span>
+        </label>
+        <label class="choice">
+          <input type="radio" name="delivery" value="1500">
+          <span class="c-name">USB メモリ渡し（8 GB）</span>
+          <span class="c-price">+¥1,500</span>
+        </label>
+        <label class="choice">
+          <input type="radio" name="delivery" value="2000">
+          <span class="c-name">DVD-R 書き込み渡し</span>
+          <span class="c-price">+¥2,000</span>
+        </label>
+      </div>
+
+      <span class="select-label">アルバム・プリント（複数選択可）</span>
+      <div class="choice-list">
+        <label class="choice">
+          <input type="checkbox" name="album" value="5000">
+          <span class="c-name">A4 アルバム（15ページ）</span>
+          <span class="c-price">+¥5,000</span>
+        </label>
+        <label class="choice">
+          <input type="checkbox" name="album" value="8500">
+          <span class="c-name">A3 大型アルバム（20ページ）</span>
+          <span class="c-price">+¥8,500</span>
+        </label>
+        <label class="choice">
+          <input type="checkbox" name="album" value="1200">
+          <span class="c-name">2L サイズ プリント 5枚</span>
+          <span class="c-price">+¥1,200</span>
+        </label>
+      </div>
+
+      <span class="select-label">追加サービス（複数選択可）</span>
+      <div class="choice-list">
+        <label class="choice">
+          <input type="checkbox" name="extra" value="3000">
+          <span class="c-name">ヘアメイクセット</span>
+          <span class="c-price">+¥3,000</span>
+        </label>
+        <label class="choice">
+          <input type="checkbox" name="extra" value="1000">
+          <span class="c-name">背景色変更（白・黒・グレー）</span>
+          <span class="c-price">+¥1,000</span>
+        </label>
+        <label class="choice">
+          <input type="checkbox" name="extra" value="2500">
+          <span class="c-name">レタッチ追加（10カット）</span>
+          <span class="c-price">+¥2,500</span>
+        </label>
+      </div>
+
+      <span class="select-label">仕上がり日程</span>
+      <div class="choice-list">
+        <label class="choice active">
+          <input type="radio" name="rush" value="0" checked>
+          <span class="c-name">通常（約1週間後）</span>
+          <span class="c-price">無料</span>
+        </label>
+        <label class="choice">
+          <input type="radio" name="rush" value="3000">
+          <span class="c-name">翌々日仕上げ</span>
+          <span class="c-price">+¥3,000</span>
+        </label>
+        <label class="choice">
+          <input type="radio" name="rush" value="6000">
+          <span class="c-name">当日仕上げ</span>
+          <span class="c-price">+¥6,000</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="price-wrap">
+    <div class="price-card">
+      <div class="price-card-title">料金のご確認</div>
+      <div class="breakdown">
+        <div class="brow" id="row-course">
+          <span class="b-label" id="lbl-course">ポートレート(30分・12カット)</span>
+          <span class="b-amount" id="amt-course">¥16,000</span>
+        </div>
+        <div class="brow" id="row-delivery" style="display:none">
+          <span class="b-label" id="lbl-delivery"></span>
+          <span class="b-amount" id="amt-delivery"></span>
+        </div>
+        <div class="brow" id="row-album" style="display:none">
+          <span class="b-label">アルバム・プリント</span>
+          <span class="b-amount" id="amt-album"></span>
+        </div>
+        <div class="brow" id="row-extra" style="display:none">
+          <span class="b-label">追加サービス</span>
+          <span class="b-amount" id="amt-extra"></span>
+        </div>
+        <div class="brow" id="row-rush" style="display:none">
+          <span class="b-label" id="lbl-rush"></span>
+          <span class="b-amount" id="amt-rush"></span>
+        </div>
+        <div class="brow subtotal">
+          <span class="b-label">小計（税抜）</span>
+          <span class="b-amount" id="amt-subtotal">¥16,000</span>
+        </div>
+        <div class="brow brow-tax">
+          <span class="b-label">消費税（10%）</span>
+          <span class="b-amount" id="amt-tax">¥1,600</span>
+        </div>
+        <div class="brow brow-total">
+          <span class="b-label">合計（税込）</span>
+          <span class="b-amount" id="amt-total">¥17,600</span>
+        </div>
+      </div>
+      <div class="sel-summary">
+        <div class="sel-summary-title">選択内容</div>
+        <div class="sel-summary-body" id="summary">ポートレート(30分・12カット)</div>
+      </div>
+      <p class="price-note">
+        ※金額はすべて税抜き表示。消費税10%が加算されます。<br>
+        ※撮影日・場所・衣装はご予約時にご確認します。<br>
+        ※ロケーション撮影の場合は別途交通費が発生します。
+      </p>
+      <button class="btn-print" onclick="window.print()">📄 この料金表を印刷・PDF保存</button>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <p>このページは <a href="https://taku0826.github.io/sumiredo-portal/" target="_blank" rel="noopener">すみれ堂</a> が制作した架空スタジオの見本です。</p>
+  <p style="margin-top:4px;">同じような料金シミュレーター・集計ツール・書類ツールを作ります → <a href="https://taku0826.github.io/sumiredo-portal/#custom" target="_blank" rel="noopener">すみれ堂に依頼する</a></p>
+</footer>
+
+<script>
+(function(){
+  var COURSE={
+    "16000":"ポートレート(30分・12カット)",
+    "24000":"ポートレート(60分・25カット)",
+    "38000":"家族写真(90分・40カット)",
+    "12000":"ビジネスプロフィール(30分)",
+    "8000" :"証明写真(5種セット)"
+  };
+  var DELIVERY={
+    "0":null,
+    "1500":"USBメモリ渡し(8GB)",
+    "2000":"DVD-R渡し"
+  };
+  var RUSH={
+    "0":null,
+    "3000":"翌々日仕上げ",
+    "6000":"当日仕上げ"
+  };
+  function fmt(n){return "¥"+n.toLocaleString("ja-JP");}
+  function setRow(rowId,lblId,lbl,amtId,val){
+    var row=document.getElementById(rowId);
+    if(val>0){
+      row.style.display="";
+      if(lblId)document.getElementById(lblId).textContent=lbl;
+      document.getElementById(amtId).textContent="+"+fmt(val);
+    }else{
+      row.style.display="none";
+    }
+  }
+  function calc(){
+    var cEl=document.querySelector('input[name="course"]:checked');
+    var cVal=cEl?+cEl.value:16000;
+    var dEl=document.querySelector('input[name="delivery"]:checked');
+    var dVal=dEl?+dEl.value:0;
+    var aEls=document.querySelectorAll('input[name="album"]:checked');
+    var aVal=0; aEls.forEach(function(e){aVal+=+e.value;});
+    var xEls=document.querySelectorAll('input[name="extra"]:checked');
+    var xVal=0; xEls.forEach(function(e){xVal+=+e.value;});
+    var rEl=document.querySelector('input[name="rush"]:checked');
+    var rVal=rEl?+rEl.value:0;
+    var sub=cVal+dVal+aVal+xVal+rVal;
+    var tax=Math.floor(sub*0.1);
+    var total=sub+tax;
+    document.getElementById('lbl-course').textContent=COURSE[String(cVal)]||"";
+    document.getElementById('amt-course').textContent=fmt(cVal);
+    setRow('row-delivery','lbl-delivery',DELIVERY[String(dVal)]||"",'amt-delivery',dVal);
+    setRow('row-album',null,"",'amt-album',aVal);
+    setRow('row-extra',null,"",'amt-extra',xVal);
+    setRow('row-rush','lbl-rush',RUSH[String(rVal)]||"",'amt-rush',rVal);
+    document.getElementById('amt-subtotal').textContent=fmt(sub);
+    document.getElementById('amt-tax').textContent=fmt(tax);
+    document.getElementById('amt-total').textContent=fmt(total);
+    var lines=[COURSE[String(cVal)]];
+    if(dVal>0)lines.push(DELIVERY[String(dVal)]);
+    aEls.forEach(function(e){lines.push(e.closest('.choice').querySelector('.c-name').textContent);});
+    xEls.forEach(function(e){lines.push(e.closest('.choice').querySelector('.c-name').textContent);});
+    if(rVal>0)lines.push(RUSH[String(rVal)]);
+    document.getElementById('summary').textContent=lines.join('\n');
+    document.querySelectorAll('.choice').forEach(function(el){
+      var inp=el.querySelector('input');
+      el.classList.toggle('active',!!(inp&&inp.checked));
+    });
+  }
+  document.querySelectorAll('.choice input').forEach(function(el){
+    el.addEventListener('change',calc);
+  });
+  calc();
+})();
+</script>
+</body>
+</html>
