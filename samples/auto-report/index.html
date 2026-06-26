@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>月次集計レポート 自動生成ツール｜すみれ堂(業務自動化サンプル)</title>
+<meta name="description" content="売上・経費などのCSVを貼り付けるだけで、月別・項目別の集計表とグラフ付きレポートを自動生成。毎月の手集計を10秒に。登録不要・完全ローカル動作・データはどこにも送信されません。すみれ堂の業務自動化サンプル。">
+<meta name="robots" content="noindex">
+<style>
+  :root{
+    --ink:#2b2b33; --sub:#6b6b7a; --line:#e7e7ef; --bg:#f7f6fb;
+    --accent:#7a5fb0; --accent2:#a78bd6; --ok:#3a8a5f; --paper:#fff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;color:var(--ink);background:var(--bg);line-height:1.7}
+  header{background:linear-gradient(135deg,#6a4f9c,#9b82cf);color:#fff;padding:28px 20px}
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px}
+  header h1{margin:0 0 6px;font-size:1.5rem}
+  header p{margin:0;opacity:.95;font-size:.95rem}
+  .tag{display:inline-block;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.45);padding:2px 10px;border-radius:999px;font-size:.78rem;margin-bottom:10px}
+  main{padding:26px 0 60px}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px;margin:0 0 20px;box-shadow:0 1px 3px rgba(40,30,70,.05)}
+  h2{font-size:1.1rem;margin:0 0 14px;padding-left:10px;border-left:4px solid var(--accent)}
+  label{font-size:.86rem;color:var(--sub);display:block;margin:0 0 4px}
+  textarea,select,input[type=file]{width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px;background:#fff}
+  textarea{min-height:120px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.82rem;resize:vertical}
+  .row{display:flex;gap:14px;flex-wrap:wrap}
+  .row>div{flex:1;min-width:150px}
+  .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  button{font:inherit;font-weight:700;cursor:pointer;border:none;border-radius:9px;padding:11px 18px}
+  .primary{background:var(--accent);color:#fff}
+  .primary:hover{background:#6a4f9c}
+  .ghost{background:#efeaf8;color:var(--accent)}
+  .ghost:hover{background:#e5dcf5}
+  .muted{color:var(--sub);font-size:.84rem}
+  .priv{display:inline-flex;align-items:center;gap:6px;color:var(--ok);font-weight:700;font-size:.84rem}
+  table{width:100%;border-collapse:collapse;font-size:.9rem;margin-top:6px}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:#f4f1fb;font-size:.82rem;color:var(--sub)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .kpis{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+  .kpi{flex:1;min-width:140px;background:#f4f1fb;border-radius:10px;padding:12px 14px}
+  .kpi .v{font-size:1.4rem;font-weight:800}
+  .kpi .l{font-size:.78rem;color:var(--sub)}
+  canvas{max-width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:10px;margin-top:8px}
+  .hide{display:none}
+  .err{color:#b03a4a;font-size:.86rem;margin-top:8px}
+  .sell{background:linear-gradient(135deg,#fbf7ff,#f3eefc);border:1px dashed var(--accent2)}
+  .sell h2{border-color:var(--accent2)}
+  .sell a{color:var(--accent);font-weight:700}
+  footer{border-top:1px solid var(--line);padding:24px 0;color:var(--sub);font-size:.82rem;text-align:center}
+  footer a{color:var(--accent)}
+  @media print{
+    header,.input-card,.sell,footer,.btns,.no-print{display:none!important}
+    body{background:#fff}
+    .card{border:none;box-shadow:none;padding:0;margin:0 0 18px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <span class="tag">すみれ堂 — 業務自動化サンプル</span>
+    <h1>月次集計レポート 自動生成ツール</h1>
+    <p>売上・経費などの明細CSVを貼るだけ。月別・項目別の集計とグラフ付きレポートを自動生成します。<br>毎月くり返す手集計を、ものの数秒で。</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="card input-card">
+    <h2>① データを入れる</h2>
+    <p class="muted">日付・項目(取引先やカテゴリ)・金額の列を含むCSVを、貼り付けるかファイルで読み込みます。
+      <span class="priv">🔒 入力データはこの端末から外に出ません(送信なし)</span></p>
+    <div class="btns no-print">
+      <button class="ghost" id="btnSample">▶ サンプルデータで試す</button>
+      <label class="ghost" style="display:inline-flex;align-items:center;padding:11px 18px;border-radius:9px;cursor:pointer;font-weight:700">
+        CSVファイルを読み込む<input type="file" id="file" accept=".csv,text/csv" class="hide">
+      </label>
+    </div>
+    <div style="margin-top:12px">
+      <label>CSV(1行目は見出し)</label>
+      <textarea id="csv" placeholder="日付,取引先,金額&#10;2026-04-03,株式会社あおい,55000&#10;2026-04-18,みどり商店,12800 ..."></textarea>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <div><label>日付の列</label><select id="colDate"></select></div>
+      <div><label>集計する項目の列(取引先・カテゴリ等)</label><select id="colGroup"></select></div>
+      <div><label>金額の列</label><select id="colAmount"></select></div>
+    </div>
+    <div class="btns">
+      <button class="primary" id="btnRun">▶ レポートを自動生成</button>
+    </div>
+    <div class="err hide" id="err"></div>
+  </div>
+
+  <div id="report" class="hide">
+    <div class="card">
+      <h2>② 集計サマリー</h2>
+      <div class="kpis">
+        <div class="kpi"><div class="v" id="kTotal">—</div><div class="l">合計金額</div></div>
+        <div class="kpi"><div class="v" id="kCount">—</div><div class="l">件数</div></div>
+        <div class="kpi"><div class="v" id="kMonths">—</div><div class="l">対象月数</div></div>
+        <div class="kpi"><div class="v" id="kAvg">—</div><div class="l">月平均</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>③ 月別推移</h2>
+      <canvas id="chart" width="900" height="320" aria-label="月別合計のグラフ"></canvas>
+      <table id="tblMonth"></table>
+    </div>
+
+    <div class="card">
+      <h2>④ 項目別ランキング</h2>
+      <table id="tblGroup"></table>
+    </div>
+
+    <div class="btns no-print">
+      <button class="primary" onclick="window.print()">🖨 印刷 / PDF保存</button>
+      <button class="ghost" id="btnCsv">⬇ 集計結果をCSVで保存</button>
+    </div>
+  </div>
+
+  <div class="card sell">
+    <h2>このサンプルについて</h2>
+    <p>これは <strong>すみれ堂</strong> の<strong>業務自動化</strong>の腕を見ていただくためのサンプルです。実際のお仕事では、
+      <strong>あなたの現場のフロー</strong>(Excel/Googleスプレッドシート/会計ソフトの書き出しCSV・複数ファイルの突合・毎月の定型レポート作成 など)に
+      合わせて、<strong>「毎週・毎月くり返している手作業」をまるごと自動化</strong>します。</p>
+    <p class="muted">例:複数店舗の売上を1枚に自動集計／申込フォームのデータを担当別シートへ自動振り分け／請求データから月次レポートを自動作成 ——
+      「この作業、地味に時間かかってるな」が1つでもあれば、ご相談ください。</p>
+    <p>👉 ご相談・お見積り(無料):<a href="https://coconala.com/services/4269975" target="_blank" rel="noopener">ココナラのすみれ堂</a>
+      ／ 無料の書類ツール一覧は<a href="https://taku0826.github.io/sumiredo-portal/" target="_blank" rel="noopener">すみれ堂トップ</a>へ。</p>
+  </div>
+
+</main>
+
+<footer class="wrap">
+  すみれ堂 — 個人事業・小さな会社の「面倒」を1つずつ消す。<br>
+  このツールは完全にお使いの端末内だけで動作し、入力データはどこにも送信されません。
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var $=function(id){return document.getElementById(id);};
+  var headers=[], rows=[];
+
+  var SAMPLE=
+"日付,取引先,品目,金額\n"+
+"2026-04-03,株式会社あおい,デザイン制作,55000\n"+
+"2026-04-12,みどり商店,コーディング,38000\n"+
+"2026-04-18,株式会社あおい,保守費,12000\n"+
+"2026-04-26,そら工房,LP制作,80000\n"+
+"2026-05-02,みどり商店,コーディング,38000\n"+
+"2026-05-09,株式会社あおい,デザイン制作,60000\n"+
+"2026-05-15,はやて印刷,チラシ入稿,22000\n"+
+"2026-05-22,そら工房,保守費,12000\n"+
+"2026-05-30,みどり商店,追加修正,9000\n"+
+"2026-06-04,株式会社あおい,デザイン制作,55000\n"+
+"2026-06-11,そら工房,LP制作,95000\n"+
+"2026-06-19,はやて印刷,チラシ入稿,22000\n"+
+"2026-06-25,みどり商店,コーディング,42000\n";
+
+  // --- minimal robust CSV parser (handles quotes, commas, CRLF) ---
+  function parseCSV(text){
+    var out=[], row=[], field="", i=0, q=false, c;
+    text=text.replace(/\r\n/g,"\n").replace(/\r/g,"\n");
+    while(i<text.length){
+      c=text[i];
+      if(q){
+        if(c==='"'){ if(text[i+1]==='"'){field+='"';i++;} else {q=false;} }
+        else field+=c;
+      } else {
+        if(c==='"') q=true;
+        else if(c===',') {row.push(field);field="";}
+        else if(c==='\n'){ row.push(field); out.push(row); row=[]; field=""; }
+        else field+=c;
+      }
+      i++;
+    }
+    if(field!==""||row.length){ row.push(field); out.push(row); }
+    return out.filter(function(r){return r.some(function(x){return String(x).trim()!=="";});});
+  }
+
+  function toNumber(v){
+    if(v==null) return NaN;
+    var s=String(v).replace(/[, ¥円\t]/g,"").trim();
+    if(s==="") return NaN;
+    return Number(s);
+  }
+  function yen(n){ return "¥"+Math.round(n).toLocaleString("ja-JP"); }
+  function monthKey(v){
+    var s=String(v).trim();
+    var m=s.match(/(\d{4})[\/\-年\.](\d{1,2})/);
+    if(m) return m[1]+"-"+("0"+m[2]).slice(-2);
+    var d=new Date(s);
+    if(!isNaN(d.getTime())) return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2);
+    return null;
+  }
+
+  function guess(names, keys){
+    for(var k=0;k<keys.length;k++){
+      for(var j=0;j<names.length;j++){ if(names[j].indexOf(keys[k])>=0) return j; }
+    }
+    return -1;
+  }
+
+  function loadFromText(text){
+    var data=parseCSV(text);
+    if(data.length<2){ showErr("データが足りません。見出し行＋1行以上の明細が必要です。"); return false; }
+    headers=data[0].map(function(h){return String(h).trim();});
+    rows=data.slice(1);
+    var sels=[$("colDate"),$("colGroup"),$("colAmount")];
+    sels.forEach(function(sel){
+      sel.innerHTML="";
+      headers.forEach(function(h,idx){
+        var o=document.createElement("option"); o.value=idx; o.textContent=(h||("列"+(idx+1))); sel.appendChild(o);
+      });
+    });
+    var gi=guess(headers,["日付","日時","date","年月"]);
+    var gg=guess(headers,["取引先","顧客","カテゴリ","品目","項目","勘定","店舗","担当","name"]);
+    var ga=guess(headers,["金額","売上","価格","amount","合計","円","税抜","税込"]);
+    if(gi>=0)$("colDate").value=gi;
+    if(gg>=0)$("colGroup").value=gg;
+    if(ga>=0)$("colAmount").value=ga; else $("colAmount").value=headers.length-1;
+    hideErr();
+    return true;
+  }
+
+  function showErr(m){ var e=$("err"); e.textContent="⚠ "+m; e.classList.remove("hide"); }
+  function hideErr(){ $("err").classList.add("hide"); }
+
+  function run(){
+    if(!headers.length){ if(!loadFromText($("csv").value)) return; }
+    var di=+$("colDate").value, gi=+$("colGroup").value, ai=+$("colAmount").value;
+    var byMonth={}, byGroup={}, total=0, count=0, bad=0;
+    rows.forEach(function(r){
+      var amt=toNumber(r[ai]); if(isNaN(amt)){bad++;return;}
+      var mk=monthKey(r[di]) || "（日付不明）";
+      var gk=(r[gi]!=null && String(r[gi]).trim()!=="")?String(r[gi]).trim():"（未分類）";
+      byMonth[mk]=(byMonth[mk]||0)+amt;
+      byGroup[gk]=(byGroup[gk]||0)+amt;
+      total+=amt; count++;
+    });
+    if(count===0){ showErr("金額として読み取れる行がありませんでした。金額の列を選び直してください。"); return; }
+    hideErr();
+
+    var months=Object.keys(byMonth).sort();
+    var groups=Object.keys(byGroup).sort(function(a,b){return byGroup[b]-byGroup[a];});
+
+    $("kTotal").textContent=yen(total);
+    $("kCount").textContent=count.toLocaleString("ja-JP")+"件";
+    var realMonths=months.filter(function(m){return m!=="（日付不明）";});
+    $("kMonths").textContent=(realMonths.length||months.length)+"ヶ月";
+    $("kAvg").textContent=yen(total/(realMonths.length||months.length));
+
+    // month table
+    var mt='<tr><th>月</th><th class="num">合計</th><th class="num">構成比</th></tr>';
+    months.forEach(function(m){
+      mt+='<tr><td>'+m+'</td><td class="num">'+yen(byMonth[m])+'</td><td class="num">'+(byMonth[m]/total*100).toFixed(1)+'%</td></tr>';
+    });
+    $("tblMonth").innerHTML=mt;
+
+    // group table
+    var gt='<tr><th>項目（'+(headers[gi]||"")+'）</th><th class="num">合計</th><th class="num">構成比</th><th class="num">件数</th></tr>';
+    var gCount={};
+    rows.forEach(function(r){var amt=toNumber(r[ai]); if(isNaN(amt))return; var gk=(r[gi]!=null&&String(r[gi]).trim()!=="")?String(r[gi]).trim():"（未分類）"; gCount[gk]=(gCount[gk]||0)+1;});
+    groups.forEach(function(g){
+      gt+='<tr><td>'+esc(g)+'</td><td class="num">'+yen(byGroup[g])+'</td><td class="num">'+(byGroup[g]/total*100).toFixed(1)+'%</td><td class="num">'+(gCount[g]||0)+'</td></tr>';
+    });
+    $("tblGroup").innerHTML=gt;
+
+    drawChart(months.filter(function(m){return m!=="（日付不明）";}), byMonth);
+    $("report").classList.remove("hide");
+    $("report").scrollIntoView({behavior:"smooth",block:"start"});
+    window._summary={months:months,byMonth:byMonth,groups:groups,byGroup:byGroup,total:total,glabel:headers[gi]||"項目"};
+  }
+
+  function esc(s){return String(s).replace(/[&<>]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;'})[c];});}
+
+  function drawChart(months, byMonth){
+    var cv=$("chart"), ctx=cv.getContext("2d");
+    var W=cv.width, H=cv.height, pad=46, bottom=H-34;
+    ctx.clearRect(0,0,W,H);
+    if(!months.length) return;
+    var max=Math.max.apply(null,months.map(function(m){return byMonth[m];}))||1;
+    // axis
+    ctx.strokeStyle="#e7e7ef"; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad,12); ctx.lineTo(pad,bottom); ctx.lineTo(W-12,bottom); ctx.stroke();
+    var n=months.length, gap=(W-pad-24)/n, bw=Math.min(64,gap*0.6);
+    ctx.font="11px sans-serif"; ctx.textAlign="center";
+    months.forEach(function(m,i){
+      var x=pad+gap*i+gap/2, h=(byMonth[m]/max)*(bottom-24);
+      var grd=ctx.createLinearGradient(0,bottom-h,0,bottom);
+      grd.addColorStop(0,"#a78bd6"); grd.addColorStop(1,"#7a5fb0");
+      ctx.fillStyle=grd;
+      ctx.fillRect(x-bw/2,bottom-h,bw,h);
+      ctx.fillStyle="#6b6b7a";
+      ctx.fillText(m.slice(5),x,bottom+16);
+      ctx.fillStyle="#2b2b33";
+      ctx.fillText("¥"+Math.round(byMonth[m]/1000)+"k",x,bottom-h-6);
+    });
+  }
+
+  function downloadCSV(){
+    var s=window._summary; if(!s) return;
+    var lines=["■月別集計"];
+    lines.push("月,合計");
+    s.months.forEach(function(m){lines.push(m+","+Math.round(s.byMonth[m]));});
+    lines.push("");
+    lines.push("■"+s.glabel+"別集計");
+    lines.push(s.glabel+",合計");
+    s.groups.forEach(function(g){lines.push('"'+String(g).replace(/"/g,'""')+'",'+Math.round(s.byGroup[g]));});
+    lines.push("");
+    lines.push("合計,"+Math.round(s.total));
+    var blob=new Blob(["﻿"+lines.join("\n")],{type:"text/csv;charset=utf-8;"});
+    var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="集計レポート.csv"; a.click();
+  }
+
+  $("btnSample").addEventListener("click",function(){ $("csv").value=SAMPLE; loadFromText(SAMPLE); run(); });
+  $("btnRun").addEventListener("click",function(){ headers=[]; run(); });
+  $("btnCsv").addEventListener("click",downloadCSV);
+  $("csv").addEventListener("blur",function(){ if($("csv").value.trim()) loadFromText($("csv").value); });
+  $("file").addEventListener("change",function(e){
+    var f=e.target.files[0]; if(!f) return;
+    var rd=new FileReader();
+    rd.onload=function(){ $("csv").value=rd.result; if(loadFromText(rd.result)) run(); };
+    rd.readAsText(f,"UTF-8");
+  });
+})();
+</script>
+</body>
+</html>
