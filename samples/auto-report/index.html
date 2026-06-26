@@ -3,9 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>月次集計レポート 自動生成ツール｜すみれ堂(業務自動化サンプル)</title>
-<meta name="description" content="売上・経費などのCSVを貼り付けるだけで、月別・項目別の集計表とグラフ付きレポートを自動生成。毎月の手集計を10秒に。登録不要・完全ローカル動作・データはどこにも送信されません。すみれ堂の業務自動化サンプル。">
-<meta name="robots" content="noindex">
+<title>売上・経費CSVを月別/取引先別に自動集計する無料ツール｜すみれ堂</title>
+<meta name="description" content="ネットショップやフリーランスの売上・経費CSVを貼り付けるだけで、月別・取引先別・項目別の集計表とグラフを自動生成。確定申告や月次の手集計が数秒で終わります。登録不要・完全ローカル動作・データはどこにも送信されません。完全無料。">
+<link rel="canonical" href="https://taku0826.github.io/sumiredo-portal/samples/auto-report/">
+<meta property="og:title" content="売上・経費CSVを月別/取引先別に自動集計する無料ツール｜すみれ堂">
+<meta property="og:description" content="CSVを貼るだけで月別・取引先別に自動集計。確定申告・月次レポートの手集計を数秒に。登録不要・送信なし・無料。">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"このCSV集計ツールは無料ですか?","acceptedAnswer":{"@type":"Answer","text":"はい、完全無料・登録不要でご利用いただけます。"}},
+{"@type":"Question","name":"入力したデータは外部に送信されますか?","acceptedAnswer":{"@type":"Answer","text":"いいえ。すべてお使いのブラウザ内だけで処理し、データはどこにも送信されません。"}},
+{"@type":"Question","name":"どんなCSVに対応していますか?","acceptedAnswer":{"@type":"Answer","text":"日付・項目(取引先やカテゴリ)・金額の列を含むCSVなら、会計ソフトやネットショップ(BASE・STORES・メルカリ等)の書き出しなど幅広く対応します。"}},
+{"@type":"Question","name":"確定申告の集計に使えますか?","acceptedAnswer":{"@type":"Answer","text":"月別・取引先別の合計を自動算出するので、月次の売上や経費の把握に役立ちます。最終的な申告は会計ソフトや税理士をご利用ください。"}}
+]}
+</script>
 <style>
   :root{
     --ink:#2b2b33; --sub:#6b6b7a; --line:#e7e7ef; --bg:#f7f6fb;
@@ -60,9 +71,9 @@
 <body>
 <header>
   <div class="wrap">
-    <span class="tag">すみれ堂 — 業務自動化サンプル</span>
-    <h1>月次集計レポート 自動生成ツール</h1>
-    <p>売上・経費などの明細CSVを貼るだけ。月別・項目別の集計とグラフ付きレポートを自動生成します。<br>毎月くり返す手集計を、ものの数秒で。</p>
+    <span class="tag">無料・登録不要・データ送信なし</span>
+    <h1>売上・経費CSVを 月別/取引先別に自動集計</h1>
+    <p>会計ソフトやネットショップ(BASE・STORES・メルカリ等)の明細CSVを貼るだけ。月別・取引先別・項目別の集計とグラフを自動生成します。<br>確定申告や月次の手集計が、ものの数秒で終わります。</p>
   </div>
 </header>
 
@@ -122,14 +133,28 @@
   </div>
 
   <div class="card sell">
-    <h2>このサンプルについて</h2>
-    <p>これは <strong>すみれ堂</strong> の<strong>業務自動化</strong>の腕を見ていただくためのサンプルです。実際のお仕事では、
-      <strong>あなたの現場のフロー</strong>(Excel/Googleスプレッドシート/会計ソフトの書き出しCSV・複数ファイルの突合・毎月の定型レポート作成 など)に
-      合わせて、<strong>「毎週・毎月くり返している手作業」をまるごと自動化</strong>します。</p>
+    <h2>もっと自動化したい方へ</h2>
+    <p>この無料ツールは「CSVを月別・取引先別に集計する」標準ケースをカバーします。でも実際の現場は、もっと細かいはず。
+      <strong>すみれ堂</strong>は、<strong>あなたの現場のフロー</strong>(Excel/Googleスプレッドシート/会計ソフトの書き出しCSV・複数ファイルの突合・毎月の定型レポート作成 など)に
+      合わせて、<strong>「毎週・毎月くり返している手作業」をまるごと自動化</strong>するお仕事も承っています。</p>
     <p class="muted">例:複数店舗の売上を1枚に自動集計／申込フォームのデータを担当別シートへ自動振り分け／請求データから月次レポートを自動作成 ——
       「この作業、地味に時間かかってるな」が1つでもあれば、ご相談ください。</p>
     <p>👉 ご相談・お見積り(無料):<a href="https://coconala.com/services/4269975" target="_blank" rel="noopener">ココナラのすみれ堂</a>
       ／ 無料の書類ツール一覧は<a href="https://taku0826.github.io/sumiredo-portal/" target="_blank" rel="noopener">すみれ堂トップ</a>へ。</p>
+  </div>
+
+  <div class="card">
+    <h2>すみれ堂の無料ツール(姉妹ツール)</h2>
+    <p class="muted">確定申告まわりの「面倒」を消す、登録不要・データ送信なしの無料ツールたち。</p>
+    <ul style="columns:2;-webkit-columns:2;font-size:.92rem;line-height:1.9;padding-left:1.2em">
+      <li><a href="https://taku0826.github.io/kosmos-keihi/" rel="noopener">経費メモ帳(集計・CSV出力)</a></li>
+      <li><a href="https://taku0826.github.io/nadeshiko-tax/" rel="noopener">源泉徴収 計算機</a></li>
+      <li><a href="https://taku0826.github.io/sumire-invoice/" rel="noopener">インボイス請求書</a></li>
+      <li><a href="https://taku0826.github.io/tsubaki-estimate/" rel="noopener">見積書・納品書</a></li>
+      <li><a href="https://taku0826.github.io/asagao-receipt/" rel="noopener">領収書</a></li>
+      <li><a href="https://taku0826.github.io/kikyo-order/" rel="noopener">発注書</a></li>
+    </ul>
+    <p class="muted"><a href="https://taku0826.github.io/sumiredo-portal/guide/" rel="noopener">→ 書類の使い分けガイドを見る</a></p>
   </div>
 
 </main>

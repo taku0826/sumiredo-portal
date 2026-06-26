@@ -8,5 +8,9 @@
     <loc>https://taku0826.github.io/sumiredo-portal/guide/</loc>
     <lastmod>2026-06-17</lastmod>
   </url>
-  <!-- samples/ は noindex の転換用見本のため sitemap には含めない(GSCのnoindex矛盾エラー回避) -->
+  <url>
+    <loc>https://taku0826.github.io/sumiredo-portal/samples/auto-report/</loc>
+    <lastmod>2026-06-26</lastmod>
+  </url>
+  <!-- samples/auto-report は実用無料ツールとして公開(indexable)。他の samples/(lp-coding等)は noindex の転換用見本のため含めない -->
 </urlset>
