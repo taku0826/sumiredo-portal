@@ -12,5 +12,9 @@
     <loc>https://taku0826.github.io/sumiredo-portal/samples/auto-report/</loc>
     <lastmod>2026-06-26</lastmod>
   </url>
+  <url>
+    <loc>https://taku0826.github.io/sumiredo-portal/samples/csv-match/</loc>
+    <lastmod>2026-06-26</lastmod>
+  </url>
   <!-- samples/auto-report は実用無料ツールとして公開(indexable)。他の samples/(lp-coding等)は noindex の転換用見本のため含めない -->
 </urlset>

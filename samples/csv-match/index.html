@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSVマッチング・突合ツール — 2つのCSVをキー列で結合 | すみれ堂</title>
+<meta name="description" content="2つのCSVファイルをキー列（商品コード・顧客IDなど）で突合・結合するツール。一致行・Aのみ・Bのみを瞬時に抽出。登録不要・完全無料・データはどこにも送信されません。">
+<link rel="canonical" href="https://taku0826.github.io/sumiredo-portal/samples/csv-match/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="CSVマッチング・突合ツール | すみれ堂">
+<meta property="og:description" content="2つのCSVをキー列で突合。一致・差分を即抽出。登録不要・完全無料・データ送信なし。">
+<meta property="og:url" content="https://taku0826.github.io/sumiredo-portal/samples/csv-match/">
+<meta property="og:site_name" content="すみれ堂">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CSVマッチング・突合ツール | すみれ堂">
+<meta name="twitter:description" content="2つのCSVをキー列で突合。一致・差分を即抽出。登録不要・完全無料。">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "CSVマッチング・突合ツール",
+  "url": "https://taku0826.github.io/sumiredo-portal/samples/csv-match/",
+  "description": "2つのCSVファイルをキー列で突合・結合するツール。登録不要・完全無料・データはどこにも送信されない完全ローカル動作。",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "ja",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "JPY" }
+}
+</script>
+<style>
+  :root {
+    --ai: #1B2A4A;
+    --ai-deep: #11203B;
+    --accent: #3B5FCC;
+    --accent-light: #EEF2FF;
+    --ok: #2E7D32;
+    --ok-light: #E8F5E9;
+    --warn: #B45309;
+    --warn-light: #FEF3C7;
+    --err: #B91C1C;
+    --err-light: #FEE2E2;
+    --washi: #F7F8F6;
+    --kami: #FFFFFF;
+    --sumi: #23272E;
+    --usuzumi: #6B7280;
+    --keisen: #D7DCE3;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP","Meiryo",sans-serif;
+    background: var(--washi);
+    color: var(--sumi);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  header.app {
+    background: var(--ai);
+    color: #fff;
+    padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: baseline; gap: 10px; }
+  .brand h1 { font-size: 17px; font-weight: 700; letter-spacing: .06em; }
+  .brand span { font-size: 11px; opacity: .75; }
+  main { max-width: 900px; margin: 28px auto; padding: 0 16px 60px; }
+  .step-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  @media (max-width: 640px) { .step-grid { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--kami);
+    border: 1px solid var(--keisen);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-label {
+    font-size: 11px; font-weight: 700; letter-spacing: .14em;
+    color: var(--accent); border-left: 3px solid var(--accent);
+    padding-left: 8px; margin-bottom: 14px;
+  }
+  .csv-label { font-size: 12px; color: var(--usuzumi); margin-bottom: 6px; }
+  textarea {
+    width: 100%; font-family: "SFMono-Regular","Consolas","Menlo",monospace;
+    font-size: 12px; border: 1px solid var(--keisen); border-radius: 7px;
+    padding: 10px; background: #FDFDFC; color: var(--sumi);
+    resize: vertical; min-height: 120px;
+  }
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
+  .file-btn-row { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+  .btn-file {
+    font-family: inherit; font-size: 12px; cursor: pointer;
+    border: 1px solid var(--keisen); border-radius: 6px; padding: 6px 14px;
+    background: var(--washi); color: var(--usuzumi); font-weight: 600;
+  }
+  .btn-file:hover { background: #eee; }
+  input[type="file"] { display: none; }
+  .preview-wrap { margin-top: 10px; }
+  .preview-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .preview-table th, .preview-table td { border: 1px solid var(--keisen); padding: 4px 7px; }
+  .preview-table th { background: var(--washi); font-weight: 600; }
+  .key-row { display: flex; gap: 10px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+  .key-row label { font-size: 11px; color: var(--usuzumi); }
+  select {
+    font-family: inherit; font-size: 13px;
+    border: 1px solid var(--keisen); border-radius: 7px;
+    padding: 6px 10px; background: #FDFDFC; min-width: 160px;
+  }
+  select:focus { outline: 2px solid var(--accent); }
+  .run-section { text-align: center; margin: 20px 0; }
+  .btn-run {
+    font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer;
+    border: none; border-radius: 8px; padding: 14px 40px;
+    background: var(--accent); color: #fff;
+    transition: background .15s;
+  }
+  .btn-run:hover { background: #2d4eb8; }
+  .btn-run:disabled { background: var(--keisen); color: var(--usuzumi); cursor: not-allowed; }
+  .results { display: none; }
+  .results.visible { display: block; }
+  .tabs { display: flex; border-bottom: 2px solid var(--keisen); margin-bottom: 16px; gap: 0; }
+  .tab-btn {
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none; border-bottom: 3px solid transparent;
+    background: none; padding: 10px 18px; color: var(--usuzumi);
+    margin-bottom: -2px;
+  }
+  .tab-btn.active { border-bottom-color: var(--accent); color: var(--accent); }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+  .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+  .result-count { font-size: 13px; font-weight: 700; }
+  .count-match { color: var(--ok); }
+  .count-a-only { color: var(--warn); }
+  .count-b-only { color: var(--err); }
+  .btn-dl {
+    font-family: inherit; font-size: 12px; cursor: pointer;
+    border: 1px solid var(--accent); border-radius: 6px; padding: 6px 14px;
+    background: var(--kami); color: var(--accent); font-weight: 600;
+  }
+  .btn-dl:hover { background: var(--accent-light); }
+  .result-table-wrap { overflow-x: auto; max-height: 360px; overflow-y: auto; border: 1px solid var(--keisen); border-radius: 7px; }
+  .result-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+  .result-table th { background: var(--washi); position: sticky; top: 0; z-index: 1; }
+  .result-table th, .result-table td { border: 1px solid var(--keisen); padding: 5px 9px; }
+  .result-table tr:hover td { background: var(--accent-light); }
+  .error-box {
+    background: var(--err-light); border: 1px solid #FECACA; border-radius: 7px;
+    padding: 12px 16px; font-size: 13px; color: var(--err); margin-bottom: 12px;
+  }
+  .cta-box {
+    background: #faf7f1; border: 1px solid #e6ddcb; border-radius: var(--radius);
+    padding: 18px 20px; text-align: center; margin-top: 24px;
+  }
+  .cta-box p { font-size: 13px; color: #3a3a3a; margin-bottom: 12px; line-height: 1.7; }
+  .cta-btn {
+    display: inline-block; padding: 10px 22px; border-radius: 8px;
+    background: var(--ai); color: #fff; text-decoration: none;
+    font-size: 14px; font-weight: 700;
+  }
+  .cta-sub { font-size: 11px; color: #8a8a8a; margin-top: 10px; }
+  .cta-sub a { color: var(--ai); }
+  footer.credit {
+    text-align: center; font-size: 11px; color: var(--usuzumi); padding: 18px 0 30px;
+  }
+  footer.credit a { color: var(--ai); }
+  .info-badge {
+    display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .08em;
+    border-radius: 4px; padding: 2px 7px; margin-left: 6px; vertical-align: middle;
+  }
+  .badge-free { background: var(--ok-light); color: var(--ok); }
+  @media print { .cta-box, footer.credit { display: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="app">
+  <div class="brand">
+    <h1>CSVマッチング・突合ツール</h1>
+    <span>2つのCSVをキー列で突合 — 一致・差分を瞬時に抽出</span>
+  </div>
+  <span class="info-badge badge-free">完全無料</span>
+</header>
+
+<main>
+
+  <div class="card" style="background:#EEF2FF;border-color:#C7D2FE;">
+    <p style="font-size:13px;color:#3730A3;">
+      <strong>このツールでできること:</strong>
+      2つのCSV（注文データ×顧客マスタ、売上×在庫、請求書×入金明細など）をキー列（商品コード・顧客IDなど）で照合し、「一致した行」「Aにだけある行」「Bにだけある行」に分けてダウンロードできます。データはブラウザ外に出ません。
+    </p>
+  </div>
+
+  <div class="step-grid">
+    <!-- CSV A -->
+    <div class="card">
+      <div class="card-label">STEP 1 — CSV A を貼り付け / 読み込み</div>
+      <p class="csv-label">CSV A（例: 注文データ、売上明細）</p>
+      <textarea id="csvA" placeholder="ここにCSVの内容を貼り付け&#10;&#10;例:&#10;注文番号,顧客ID,商品名,金額&#10;1001,C001,ペン,500&#10;1002,C002,ノート,800"></textarea>
+      <div class="file-btn-row">
+        <button class="btn-file" onclick="document.getElementById('fileA').click()">ファイルを選択</button>
+        <input type="file" id="fileA" accept=".csv,.tsv,.txt" onchange="loadFile('A',this)">
+        <span id="fileAName" style="font-size:11px;color:var(--usuzumi);"></span>
+      </div>
+      <div id="previewA" class="preview-wrap"></div>
+      <div class="key-row">
+        <label>照合キー列:</label>
+        <select id="keyA"><option value="">（先にCSVを入力）</option></select>
+      </div>
+    </div>
+
+    <!-- CSV B -->
+    <div class="card">
+      <div class="card-label">STEP 2 — CSV B を貼り付け / 読み込み</div>
+      <p class="csv-label">CSV B（例: 顧客マスタ、入金明細）</p>
+      <textarea id="csvB" placeholder="ここにCSVの内容を貼り付け&#10;&#10;例:&#10;顧客ID,会社名,担当者&#10;C001,株式会社A,田中&#10;C003,株式会社B,鈴木"></textarea>
+      <div class="file-btn-row">
+        <button class="btn-file" onclick="document.getElementById('fileB').click()">ファイルを選択</button>
+        <input type="file" id="fileB" accept=".csv,.tsv,.txt" onchange="loadFile('B',this)">
+        <span id="fileBName" style="font-size:11px;color:var(--usuzumi);"></span>
+      </div>
+      <div id="previewB" class="preview-wrap"></div>
+      <div class="key-row">
+        <label>照合キー列:</label>
+        <select id="keyB"><option value="">（先にCSVを入力）</option></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="run-section">
+    <button class="btn-run" id="btnRun" onclick="runMatch()">突合を実行する →</button>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+    <div id="errorBox"></div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('match')">✅ 一致した行 <span id="cntMatch">0</span>件</button>
+      <button class="tab-btn" onclick="switchTab('aonly')">🟡 Aのみ <span id="cntA">0</span>件</button>
+      <button class="tab-btn" onclick="switchTab('bonly')">🔴 Bのみ <span id="cntB">0</span>件</button>
+    </div>
+    <div id="paneMatch" class="tab-pane active">
+      <div class="result-header">
+        <span class="result-count count-match">一致: <span id="cntMatch2">0</span>件</span>
+        <button class="btn-dl" onclick="downloadCSV('match')">CSVダウンロード</button>
+      </div>
+      <div class="result-table-wrap"><table class="result-table" id="tblMatch"></table></div>
+    </div>
+    <div id="paneAonly" class="tab-pane">
+      <div class="result-header">
+        <span class="result-count count-a-only">Aのみ: <span id="cntA2">0</span>件</span>
+        <button class="btn-dl" onclick="downloadCSV('aonly')">CSVダウンロード</button>
+      </div>
+      <div class="result-table-wrap"><table class="result-table" id="tblAonly"></table></div>
+    </div>
+    <div id="paneBonly" class="tab-pane">
+      <div class="result-header">
+        <span class="result-count count-b-only">Bのみ: <span id="cntB2">0</span>件</span>
+        <button class="btn-dl" onclick="downloadCSV('bonly')">CSVダウンロード</button>
+      </div>
+      <div class="result-table-wrap"><table class="result-table" id="tblBonly"></table></div>
+    </div>
+  </div>
+
+  <div class="cta-box" style="margin-top:20px;">
+    <p>このツールはサンプルです。<strong>実際の業務フローに合わせた自動化</strong>（複数ファイルの自動読み込み・月次レポート生成・Googleスプレッドシート連携など）も承っています。</p>
+    <a class="cta-btn" href="https://coconala.com/services/4269975" target="_blank" rel="noopener">すみれ堂に業務自動化を相談する →</a>
+    <p class="cta-sub">実際に解決したい業務の流れを教えていただければ、最適な方法をご提案します ／ <a href="https://taku0826.github.io/sumiredo-portal/" target="_blank" rel="noopener">すみれ堂 — 道具一覧</a></p>
+  </div>
+
+  <footer class="credit">
+    CSVマッチング・突合ツール — ブラウザだけで動きます。入力データはどこにも送信されません。<br>
+    姉妹ツール:
+    <a href="https://taku0826.github.io/sumire-invoice/">スミレ請求書</a> /
+    <a href="https://taku0826.github.io/tsubaki-estimate/">ツバキ見積書</a> /
+    <a href="https://taku0826.github.io/asagao-receipt/">アサガオ領収書</a> /
+    <a href="https://taku0826.github.io/nadeshiko-tax/">ナデシコ源泉計算機</a> /
+    <a href="https://taku0826.github.io/sumiredo-portal/samples/auto-report/">売上CSV自動集計</a><br>
+    <a href="https://taku0826.github.io/sumiredo-portal/">🌸 すみれ堂 — 道具一覧はこちら</a> ／ <a href="https://coconala.com/services/4269975" target="_blank" rel="noopener">業務自動化の依頼(ここナラ)</a>
+  </footer>
+
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  var dataA = null, dataB = null;
+  var matchRows = [], aOnlyRows = [], bOnlyRows = [];
+  var matchHeaders = [], aHeaders = [], bHeaders = [];
+
+  /* ---- CSV parser (RFC 4180 subset) ---- */
+  function parseCSV(text) {
+    text = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
+    if (!text) return [];
+    var rows = [];
+    var lines = text.split("\n");
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      if (!line.trim()) continue;
+      rows.push(splitCSVLine(line));
+    }
+    return rows;
+  }
+
+  function splitCSVLine(line) {
+    var result = [], cur = "", inQ = false;
+    for (var i = 0; i < line.length; i++) {
+      var c = line[i];
+      if (c === '"') {
+        if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+        else { inQ = !inQ; }
+      } else if (c === ',' && !inQ) {
+        result.push(cur); cur = "";
+      } else {
+        cur += c;
+      }
+    }
+    result.push(cur);
+    return result;
+  }
+
+  function rowsToObjects(rows) {
+    if (rows.length < 2) return { headers: rows[0] || [], data: [] };
+    var headers = rows[0];
+    var data = [];
+    for (var i = 1; i < rows.length; i++) {
+      var obj = {};
+      for (var j = 0; j < headers.length; j++) {
+        obj[headers[j]] = rows[i][j] !== undefined ? rows[i][j] : "";
+      }
+      data.push(obj);
+    }
+    return { headers: headers, data: data };
+  }
+
+  function toCSVLine(obj, headers) {
+    return headers.map(function(h) {
+      var v = obj[h] !== undefined ? String(obj[h]) : "";
+      if (v.indexOf(",") >= 0 || v.indexOf('"') >= 0 || v.indexOf("\n") >= 0) {
+        return '"' + v.replace(/"/g, '""') + '"';
+      }
+      return v;
+    }).join(",");
+  }
+
+  /* ---- File load ---- */
+  window.loadFile = function(side, input) {
+    if (!input.files.length) return;
+    var file = input.files[0];
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var ta = document.getElementById("csv" + side);
+      ta.value = e.target.result;
+      document.getElementById("file" + side + "Name").textContent = file.name;
+      onCSVInput(side);
+    };
+    reader.readAsText(file, "UTF-8");
+  };
+
+  /* ---- Live preview & header populator ---- */
+  function onCSVInput(side) {
+    var text = document.getElementById("csv" + side).value.trim();
+    var previewEl = document.getElementById("preview" + side);
+    var keyEl = document.getElementById("key" + side);
+
+    if (!text) {
+      previewEl.innerHTML = "";
+      keyEl.innerHTML = "<option value=''>（先にCSVを入力）</option>";
+      if (side === "A") dataA = null;
+      else dataB = null;
+      return;
+    }
+
+    var rows = parseCSV(text);
+    if (rows.length < 1) {
+      previewEl.innerHTML = "<p style='color:var(--err);font-size:12px;'>CSVを正しく読み取れません</p>";
+      return;
+    }
+
+    var parsed = rowsToObjects(rows);
+    if (side === "A") dataA = parsed;
+    else dataB = parsed;
+
+    /* Populate key selector */
+    keyEl.innerHTML = parsed.headers.map(function(h) {
+      return "<option value='" + h.replace(/'/g, "&#39;") + "'>" + h + "</option>";
+    }).join("");
+
+    /* Preview table (first 3 data rows) */
+    var previewRows = rows.slice(0, Math.min(4, rows.length));
+    var html = "<table class='preview-table'>";
+    for (var i = 0; i < previewRows.length; i++) {
+      html += "<tr>";
+      var tag = i === 0 ? "th" : "td";
+      for (var j = 0; j < previewRows[i].length; j++) {
+        html += "<" + tag + ">" + escHtml(previewRows[i][j]) + "</" + tag + ">";
+      }
+      html += "</tr>";
+    }
+    if (rows.length > 4) html += "<tr><td colspan='" + previewRows[0].length + "' style='color:var(--usuzumi);font-size:11px;'>… 他" + (rows.length - 4) + "行</td></tr>";
+    html += "</table>";
+    previewEl.innerHTML = html;
+  }
+
+  /* ---- Attach listeners ---- */
+  document.getElementById("csvA").addEventListener("input", function() { onCSVInput("A"); });
+  document.getElementById("csvB").addEventListener("input", function() { onCSVInput("B"); });
+
+  /* ---- Main match logic ---- */
+  window.runMatch = function() {
+    document.getElementById("errorBox").innerHTML = "";
+    if (!dataA || !dataB) {
+      showError("CSVのデータをA・Bどちらも入力してください。");
+      return;
+    }
+    if (dataA.data.length === 0 || dataB.data.length === 0) {
+      showError("CSVのデータ行(ヘッダー以外)が空です。"); return;
+    }
+
+    var keyAval = document.getElementById("keyA").value;
+    var keyBval = document.getElementById("keyB").value;
+    if (!keyAval || !keyBval) {
+      showError("照合キー列を選択してください。"); return;
+    }
+
+    /* Build lookup map from B */
+    var mapB = {};
+    var bData = dataB.data;
+    for (var i = 0; i < bData.length; i++) {
+      var k = String(bData[i][keyBval]).trim();
+      if (!mapB[k]) mapB[k] = [];
+      mapB[k].push(bData[i]);
+    }
+
+    /* Merge headers (A headers + B headers excluding key) */
+    var bExtra = dataB.headers.filter(function(h) { return h !== keyBval; });
+    var mergedHeaders = dataA.headers.concat(bExtra.map(function(h) { return "B:" + h; }));
+    matchHeaders = mergedHeaders;
+    aHeaders = dataA.headers;
+    bHeaders = dataB.headers;
+
+    matchRows = [];
+    aOnlyRows = [];
+    var usedBKeys = {};
+
+    var aData = dataA.data;
+    for (var i = 0; i < aData.length; i++) {
+      var aRow = aData[i];
+      var kv = String(aRow[keyAval]).trim();
+      if (mapB[kv] && mapB[kv].length > 0) {
+        /* Matched — join with first B row (or all if multi-match) */
+        for (var m = 0; m < mapB[kv].length; m++) {
+          var merged = Object.assign({}, aRow);
+          var bRow = mapB[kv][m];
+          for (var bi = 0; bi < bExtra.length; bi++) {
+            merged["B:" + bExtra[bi]] = bRow[bExtra[bi]];
+          }
+          matchRows.push(merged);
+        }
+        usedBKeys[kv] = true;
+      } else {
+        aOnlyRows.push(aRow);
+      }
+    }
+
+    bOnlyRows = [];
+    for (var j = 0; j < bData.length; j++) {
+      var bkv = String(bData[j][keyBval]).trim();
+      if (!usedBKeys[bkv]) {
+        bOnlyRows.push(bData[j]);
+        usedBKeys[bkv] = true;
+      }
+    }
+
+    /* Render results */
+    renderTable("tblMatch", matchHeaders, matchRows);
+    renderTable("tblAonly", aHeaders, aOnlyRows);
+    renderTable("tblBonly", bHeaders, bOnlyRows);
+
+    document.getElementById("cntMatch").textContent = matchRows.length;
+    document.getElementById("cntA").textContent = aOnlyRows.length;
+    document.getElementById("cntB").textContent = bOnlyRows.length;
+    document.getElementById("cntMatch2").textContent = matchRows.length;
+    document.getElementById("cntA2").textContent = aOnlyRows.length;
+    document.getElementById("cntB2").textContent = bOnlyRows.length;
+
+    document.getElementById("results").classList.add("visible");
+    switchTab("match");
+    document.getElementById("results").scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  function renderTable(id, headers, rows) {
+    var el = document.getElementById(id);
+    if (!headers || !headers.length) { el.innerHTML = ""; return; }
+    var html = "<thead><tr>" + headers.map(function(h) {
+      return "<th>" + escHtml(h) + "</th>";
+    }).join("") + "</tr></thead><tbody>";
+    if (rows.length === 0) {
+      html += "<tr><td colspan='" + headers.length + "' style='color:var(--usuzumi);text-align:center;padding:12px;'>データなし</td></tr>";
+    } else {
+      for (var i = 0; i < rows.length; i++) {
+        html += "<tr>" + headers.map(function(h) {
+          return "<td>" + escHtml(rows[i][h] !== undefined ? rows[i][h] : "") + "</td>";
+        }).join("") + "</tr>";
+      }
+    }
+    html += "</tbody>";
+    el.innerHTML = html;
+  }
+
+  /* ---- Tab switch ---- */
+  window.switchTab = function(name) {
+    var panes = ["match", "aonly", "bonly"];
+    panes.forEach(function(p) {
+      document.getElementById("pane" + ucFirst(p)).classList.toggle("active", p === name);
+    });
+    document.querySelectorAll(".tab-btn").forEach(function(btn, i) {
+      btn.classList.toggle("active", i === panes.indexOf(name));
+    });
+  };
+  function ucFirst(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  /* ---- Download ---- */
+  window.downloadCSV = function(type) {
+    var rows, headers, fname;
+    if (type === "match") { rows = matchRows; headers = matchHeaders; fname = "matched.csv"; }
+    else if (type === "aonly") { rows = aOnlyRows; headers = aHeaders; fname = "a_only.csv"; }
+    else { rows = bOnlyRows; headers = bHeaders; fname = "b_only.csv"; }
+
+    if (!headers || !headers.length) return;
+    var lines = [headers.join(",")];
+    rows.forEach(function(r) { lines.push(toCSVLine(r, headers)); });
+    var blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = fname;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  /* ---- Helpers ---- */
+  function showError(msg) {
+    document.getElementById("errorBox").innerHTML = "<div class='error-box'>" + escHtml(msg) + "</div>";
+    document.getElementById("results").classList.add("visible");
+  }
+  function escHtml(s) {
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+})();
+</script>
+</body>
+</html>
