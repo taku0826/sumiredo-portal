@@ -168,7 +168,7 @@
 (function(){
   "use strict";
   var $=function(id){return document.getElementById(id);};
-  var headers=[], rows=[];
+  var headers=[], rows=[], lastText="";
 
   var SAMPLE=
 "日付,取引先,品目,金額\n"+
@@ -248,6 +248,7 @@
     if(gi>=0)$("colDate").value=gi;
     if(gg>=0)$("colGroup").value=gg;
     if(ga>=0)$("colAmount").value=ga; else $("colAmount").value=headers.length-1;
+    lastText=text;
     hideErr();
     return true;
   }
@@ -256,7 +257,9 @@
   function hideErr(){ $("err").classList.add("hide"); }
 
   function run(){
-    if(!headers.length){ if(!loadFromText($("csv").value)) return; }
+    // Re-parse (and re-guess columns) only when the CSV text changed.
+    // If unchanged, keep the user's manual column selections.
+    if(!headers.length || $("csv").value!==lastText){ if(!loadFromText($("csv").value)) return; }
     var di=+$("colDate").value, gi=+$("colGroup").value, ai=+$("colAmount").value;
     var byMonth={}, byGroup={}, total=0, count=0, bad=0;
     rows.forEach(function(r){
@@ -343,7 +346,7 @@
   }
 
   $("btnSample").addEventListener("click",function(){ $("csv").value=SAMPLE; loadFromText(SAMPLE); run(); });
-  $("btnRun").addEventListener("click",function(){ headers=[]; run(); });
+  $("btnRun").addEventListener("click",function(){ run(); });
   $("btnCsv").addEventListener("click",downloadCSV);
   $("csv").addEventListener("blur",function(){ if($("csv").value.trim()) loadFromText($("csv").value); });
   $("file").addEventListener("change",function(e){
