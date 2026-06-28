@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CSVマッチング・突合ツール — 2つのCSVをキー列で結合 | すみれ堂</title>
-<meta name="description" content="2つのCSVファイルをキー列（商品コード・顧客IDなど）で突合・結合するツール。一致行・Aのみ・Bのみを瞬時に抽出。登録不要・完全無料・データはどこにも送信されません。">
+<meta name="description" content="2つのCSVファイルをキー列（商品コード・伝票番号など）で突合・結合するツール。一致行・Aのみ・Bのみを瞬時に抽出。登録不要・完全無料・データはどこにも送信されません。">
 <link rel="canonical" href="https://taku0826.github.io/sumiredo-portal/samples/csv-match/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="CSVマッチング・突合ツール | すみれ堂">
@@ -188,7 +188,7 @@
   <div class="card" style="background:#EEF2FF;border-color:#C7D2FE;">
     <p style="font-size:13px;color:#3730A3;">
       <strong>このツールでできること:</strong>
-      2つのCSV（注文データ×顧客マスタ、売上×在庫、請求書×入金明細など）をキー列（商品コード・顧客IDなど）で照合し、「一致した行」「Aにだけある行」「Bにだけある行」に分けてダウンロードできます。データはブラウザ外に出ません。
+      2つのCSV（発注番号×納品番号、商品コード×在庫リスト、旧リスト×新リストなど）をキー列（商品コード・伝票番号など）で照合し、「一致した行」「Aにだけある行」「Bにだけある行」に分けてダウンロードできます。データはブラウザ外に出ません。
     </p>
   </div>
 
@@ -196,8 +196,8 @@
     <!-- CSV A -->
     <div class="card">
       <div class="card-label">STEP 1 — CSV A を貼り付け / 読み込み</div>
-      <p class="csv-label">CSV A（例: 注文データ、売上明細）</p>
-      <textarea id="csvA" placeholder="ここにCSVの内容を貼り付け&#10;&#10;例:&#10;注文番号,顧客ID,商品名,金額&#10;1001,C001,ペン,500&#10;1002,C002,ノート,800"></textarea>
+      <p class="csv-label">CSV A（例: 発注リスト、商品マスタ）</p>
+      <textarea id="csvA" placeholder="ここにCSVの内容を貼り付け&#10;&#10;例:&#10;発注番号,商品コード,商品名,数量&#10;1001,P001,ペン,50&#10;1002,P002,ノート,80"></textarea>
       <div class="file-btn-row">
         <button class="btn-file" onclick="document.getElementById('fileA').click()">ファイルを選択</button>
         <input type="file" id="fileA" accept=".csv,.tsv,.txt" onchange="loadFile('A',this)">
@@ -213,8 +213,8 @@
     <!-- CSV B -->
     <div class="card">
       <div class="card-label">STEP 2 — CSV B を貼り付け / 読み込み</div>
-      <p class="csv-label">CSV B（例: 顧客マスタ、入金明細）</p>
-      <textarea id="csvB" placeholder="ここにCSVの内容を貼り付け&#10;&#10;例:&#10;顧客ID,会社名,担当者&#10;C001,株式会社A,田中&#10;C003,株式会社B,鈴木"></textarea>
+      <p class="csv-label">CSV B（例: 納品リスト、在庫リスト）</p>
+      <textarea id="csvB" placeholder="ここにCSVの内容を貼り付け&#10;&#10;例:&#10;商品コード,在庫数,倉庫&#10;P001,120,東京&#10;P003,40,大阪"></textarea>
       <div class="file-btn-row">
         <button class="btn-file" onclick="document.getElementById('fileB').click()">ファイルを選択</button>
         <input type="file" id="fileB" accept=".csv,.tsv,.txt" onchange="loadFile('B',this)">
@@ -288,81 +288,247 @@
 (function () {
   "use strict";
 
-  var dataA = null, dataB = null;
-  var matchRows = [], aOnlyRows = [], bOnlyRows = [];
-  var matchHeaders = [], aHeaders = [], bHeaders = [];
+  /* ===========================================================
+     純粋ロジック(DOM非依存・Nodeで検品テスト可能)
+     仕様: marketing/product-spec-csv-match-0628.md
+     =========================================================== */
 
-  /* ---- CSV parser (RFC 4180 subset) ---- */
-  function parseCSV(text) {
-    text = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
-    if (!text) return [];
-    var rows = [];
-    var lines = text.split("\n");
-    for (var i = 0; i < lines.length; i++) {
-      var line = lines[i];
-      if (!line.trim()) continue;
-      rows.push(splitCSVLine(line));
+  var RESERVED_PREFIX = "B:";          /* 一致出力でB側列に付ける接頭辞 */
+  var MAX_ROWS = 50000;                /* 1ファイルあたりの行数上限(実測ベース・§処理上限) */
+  var MAX_COLS = 200;                  /* 列数上限 */
+  var MAX_CELLS = 2000000;             /* 総セル数上限(行×列) */
+  var MAX_CELL_LEN = 32000;            /* 1セルの文字数上限 */
+  var MAX_TEXT_LEN = 30000000;         /* 1ファイルの文字数上限(≈30MB・解析前に拒否) */
+
+  /* ---- 文字コード判定(厳格): UTF-16拒否 → UTF-8(fatal) → Shift_JIS(fatal) → 判定不能はエラー ----
+     非fatalの黙った置換(U+FFFD)でキーを壊さない。NUL混入も拒否。 */
+  function decodeBytes(bytes) {
+    if (bytes.length >= 2 && ((bytes[0] === 0xFF && bytes[1] === 0xFE) || (bytes[0] === 0xFE && bytes[1] === 0xFF))) {
+      throw new Error("UTF-16形式は未対応です。UTF-8またはShift_JIS(CP932)で保存し直してください。");
     }
+    var out;
+    try {
+      out = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    } catch (e) {
+      try {
+        out = new TextDecoder("shift_jis", { fatal: true }).decode(bytes);  /* CP932(Windows版Excelの既定) */
+      } catch (e2) {
+        throw new Error("文字コードを判定できません(UTF-8/Shift_JISのいずれでもありません)。");
+      }
+    }
+    if (/\u0000/.test(out)) { throw new Error("制御文字(NUL)が含まれています。CSVとして不正です。"); }
+    return out;
+  }
+
+  /* ---- CSVパーサ(RFC 4180 状態機械: クォート内のカンマ・改行・二重引用符に対応) ----
+     ・先頭BOM除去 ・CRLF/CR→LF ・引用符はフィールド先頭でのみ開始、閉じた後は区切り/改行/EOFのみ許可
+     ・不正な引用符位置・未クローズはエラー停止 ・物理的な空行(長さ0の1フィールド)のみ除外 */
+  function parseCSV(text) {
+    if (!text) return [];
+    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+    text = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    var rows = [], row = [], cur = "", state = "START";  /* START / UNQUOTED / QUOTED / AFTERQUOTE */
+    function endField() { row.push(cur); cur = ""; }
+    function endRow() { endField(); rows.push(row); row = []; }
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+      if (state === "START") {
+        if (c === '"') { state = "QUOTED"; }
+        else if (c === ",") { endField(); }
+        else if (c === "\n") { endRow(); }
+        else { cur += c; state = "UNQUOTED"; }
+      } else if (state === "UNQUOTED") {
+        if (c === '"') { throw new Error('CSVの引用符(")の位置が不正です(フィールドの途中に " があります)。'); }
+        else if (c === ",") { endField(); state = "START"; }
+        else if (c === "\n") { endRow(); state = "START"; }
+        else { cur += c; }
+      } else if (state === "QUOTED") {
+        if (c === '"') {
+          if (text[i + 1] === '"') { cur += '"'; i++; }
+          else { state = "AFTERQUOTE"; }
+        } else { cur += c; }
+      } else { /* AFTERQUOTE */
+        if (c === ",") { endField(); state = "START"; }
+        else if (c === "\n") { endRow(); state = "START"; }
+        else { throw new Error('CSVの引用符(")で閉じた後に不正な文字があります。'); }
+      }
+    }
+    if (state === "QUOTED") { throw new Error('CSVのクォート(")が閉じていません。引用符の対応をご確認ください。'); }
+    endRow();
+    rows = rows.filter(function (r) { return !(r.length === 1 && r[0] === ""); });  /* 真の空行のみ除外 */
     return rows;
   }
 
-  function splitCSVLine(line) {
-    var result = [], cur = "", inQ = false;
-    for (var i = 0; i < line.length; i++) {
-      var c = line[i];
-      if (c === '"') {
-        if (inQ && line[i+1] === '"') { cur += '"'; i++; }
-        else { inQ = !inQ; }
-      } else if (c === ',' && !inQ) {
-        result.push(cur); cur = "";
-      } else {
-        cur += c;
-      }
-    }
-    result.push(cur);
-    return result;
-  }
-
-  function rowsToObjects(rows) {
-    if (rows.length < 2) return { headers: rows[0] || [], data: [] };
+  /* ---- ヘッダー検証つきオブジェクト化(空/重複ヘッダー・列数超過はエラー停止) ---- */
+  function rowsToObjects(rows, label) {
+    label = label || "";
+    if (!rows || rows.length === 0) return { headers: [], data: [] };
     var headers = rows[0];
+    var seen = Object.create(null);
+    for (var h = 0; h < headers.length; h++) {
+      var name = headers[h].trim();
+      if (name === "") { throw new Error("CSV " + label + ": 列名(ヘッダー)が空の列があります(" + (h + 1) + "列目)。"); }
+      if (seen[name]) { throw new Error("CSV " + label + ": 列名「" + name + "」が重複しています。列名は一意にしてください。"); }
+      seen[name] = true;
+    }
     var data = [];
     for (var i = 1; i < rows.length; i++) {
-      var obj = {};
+      if (rows[i].length > headers.length) {
+        throw new Error("CSV " + label + ": " + (i + 1) + "行目の列数(" + rows[i].length + ")がヘッダー(" + headers.length + ")より多く、データが失われる恐れがあります。");
+      }
+      var obj = Object.create(null);
       for (var j = 0; j < headers.length; j++) {
-        obj[headers[j]] = rows[i][j] !== undefined ? rows[i][j] : "";
+        var cell = rows[i][j] !== undefined ? rows[i][j] : "";  /* 不足列は空で補完 */
+        if (cell.length > MAX_CELL_LEN) {
+          throw new Error("CSV " + label + ": " + (i + 1) + "行目に長すぎるセル(" + cell.length + "文字 > 上限" + MAX_CELL_LEN + ")があります。");
+        }
+        obj[headers[j]] = cell;
       }
       data.push(obj);
     }
     return { headers: headers, data: data };
   }
 
-  function toCSVLine(obj, headers) {
-    return headers.map(function(h) {
-      var v = obj[h] !== undefined ? String(obj[h]) : "";
-      if (v.indexOf(",") >= 0 || v.indexOf('"') >= 0 || v.indexOf("\n") >= 0) {
-        return '"' + v.replace(/"/g, '""') + '"';
-      }
-      return v;
-    }).join(",");
+  function normKey(v) { return (v === undefined || v === null) ? "" : String(v).trim(); }
+
+  /* ---- キー列の検品: 空欄・重複を検出(escHtml済みの人間可読メッセージを返す) ---- */
+  function validateKeys(data, col, label) {
+    var probs = [], seen = Object.create(null), dup = Object.create(null), empty = 0;
+    for (var i = 0; i < data.length; i++) {
+      var k = normKey(data[i][col]);
+      if (k === "") { empty++; continue; }
+      if (seen[k]) { dup[k] = true; } else { seen[k] = true; }
+    }
+    var c = escHtml(col);
+    if (empty > 0) probs.push("CSV " + label + ":キー列「" + c + "」に空欄が " + empty + " 件あります");
+    var dupKeys = Object.keys(dup);
+    if (dupKeys.length) {
+      var sample = dupKeys.slice(0, 5).map(function (k) { return "「" + escHtml(k) + "」"; }).join("、");
+      probs.push("CSV " + label + ":キー列「" + c + "」に重複が " + dupKeys.length + " 種あります(例: " + sample + (dupKeys.length > 5 ? " ほか" : "") + ")");
+    }
+    return probs;
   }
 
-  /* ---- File load ---- */
-  window.loadFile = function(side, input) {
+  /* ---- 突合本体(純粋関数: テストと本番が同じこの関数を呼ぶ) ----
+     入力: A・Bの生CSV文字列 + キー列名。出力: 検証エラー or 突合結果。 */
+  function computeMatch(textA, textB, keyAval, keyBval) {
+    /* 解析前のサイズ拒否(巨大ファイルでブラウザを止めない) */
+    if ((textA && textA.length > MAX_TEXT_LEN) || (textB && textB.length > MAX_TEXT_LEN)) {
+      return { error: true, code: "MAX_SIZE", problems: ["ファイルが大きすぎます(上限 " + MAX_TEXT_LEN + " 文字)。分割してください。"] };
+    }
+    var A, B;
+    try { A = rowsToObjects(parseCSV(textA), "A"); }
+    catch (e) { return { error: true, code: "PARSE_A", problems: [escHtml(e.message)] }; }
+    try { B = rowsToObjects(parseCSV(textB), "B"); }
+    catch (e) { return { error: true, code: "PARSE_B", problems: [escHtml(e.message)] }; }
+
+    if (A.data.length === 0 || B.data.length === 0) {
+      return { error: true, code: "EMPTY_DATA", problems: ["CSVのデータ行(ヘッダー以外)が空です。"] };
+    }
+    if (A.data.length > MAX_ROWS || B.data.length > MAX_ROWS) {
+      return { error: true, code: "MAX_ROWS", problems: ["行数が上限(" + MAX_ROWS + "行)を超えています。ファイルを分割してください(大規模は別途ご相談)。"] };
+    }
+    if (A.headers.length > MAX_COLS || B.headers.length > MAX_COLS) {
+      return { error: true, code: "MAX_COLS", problems: ["列数が上限(" + MAX_COLS + "列)を超えています。"] };
+    }
+    if (A.data.length * A.headers.length > MAX_CELLS || B.data.length * B.headers.length > MAX_CELLS) {
+      return { error: true, code: "MAX_CELLS", problems: ["データ量(行×列)が上限(" + MAX_CELLS + "セル)を超えています。範囲を絞ってください。"] };
+    }
+    if (A.headers.indexOf(keyAval) < 0 || B.headers.indexOf(keyBval) < 0) {
+      return { error: true, code: "KEY_NOT_FOUND", problems: ["指定されたキー列が見つかりません。"] };
+    }
+
+    /* 空キー・重複キーはエラー停止(取りこぼし・水増し防止) */
+    var problems = validateKeys(A.data, keyAval, "A").concat(validateKeys(B.data, keyBval, "B"));
+    if (problems.length) return { error: true, code: "KEY_INVALID", problems: problems };
+
+    /* 出力列名の衝突チェック(A側に "B:○○" と同名の列があると上書きされる) */
+    var bExtra = B.headers.filter(function (h) { return h !== keyBval; });
+    var mergedHeaders = A.headers.concat(bExtra.map(function (h) { return RESERVED_PREFIX + h; }));
+    var hseen = Object.create(null);
+    for (var mh = 0; mh < mergedHeaders.length; mh++) {
+      if (hseen[mergedHeaders[mh]]) {
+        return { error: true, code: "HEADER_COLLISION", problems: ["出力の列名「" + escHtml(mergedHeaders[mh]) + "」が衝突します。A側に『" + RESERVED_PREFIX + "』で始まる列名があると結合できません。列名を変更してください。"] };
+      }
+      hseen[mergedHeaders[mh]] = true;
+    }
+
+    /* keys are unique & non-empty → 1対1のメンバーシップ結合(直積増殖なし) */
+    var mapB = Object.create(null);
+    for (var i = 0; i < B.data.length; i++) { mapB[normKey(B.data[i][keyBval])] = B.data[i]; }
+
+    var matchRows = [], aOnlyRows = [], bOnlyRows = [], usedB = Object.create(null);
+    for (var a = 0; a < A.data.length; a++) {
+      var aRow = A.data[a], k = normKey(aRow[keyAval]);
+      if (mapB[k] !== undefined) {
+        var merged = Object.create(null); for (var ak in aRow) merged[ak] = aRow[ak];
+        var bRow = mapB[k];
+        for (var bi = 0; bi < bExtra.length; bi++) { merged[RESERVED_PREFIX + bExtra[bi]] = bRow[bExtra[bi]]; }
+        matchRows.push(merged); usedB[k] = true;
+      } else { aOnlyRows.push(aRow); }
+    }
+    for (var b = 0; b < B.data.length; b++) {
+      if (!usedB[normKey(B.data[b][keyBval])]) bOnlyRows.push(B.data[b]);
+    }
+    return {
+      error: false,
+      matchHeaders: mergedHeaders, aHeaders: A.headers, bHeaders: B.headers,
+      matchRows: matchRows, aOnlyRows: aOnlyRows, bOnlyRows: bOnlyRows,
+      aCount: A.data.length, bCount: B.data.length
+    };
+  }
+
+  /* ---- CSV出力(数式インジェクション対策 + BOM付き) ---- */
+  function sanitizeCell(v) {
+    var head = v.replace(/^[\s\x00-\x1f]+/, "");
+    if (head.length && "=+-@".indexOf(head.charAt(0)) >= 0) return "'" + v;
+    return v;
+  }
+  function toCSVField(raw) {
+    var v = sanitizeCell(raw === undefined || raw === null ? "" : String(raw));
+    if (v.indexOf(",") >= 0 || v.indexOf('"') >= 0 || v.indexOf("\n") >= 0 || v.indexOf("\r") >= 0) {
+      return '"' + v.replace(/"/g, '""') + '"';
+    }
+    return v;
+  }
+  function toCSVLine(obj, headers) {
+    return headers.map(function (h) { return toCSVField(obj[h]); }).join(",");
+  }
+  function buildCSV(rows, headers) {
+    var lines = [headers.map(toCSVField).join(",")];
+    for (var i = 0; i < rows.length; i++) lines.push(toCSVLine(rows[i], headers));
+    return "﻿" + lines.join("\r\n");   /* Excel互換: BOM + CRLF */
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  /* ===========================================================
+     以降: ブラウザUI(DOM依存)
+     =========================================================== */
+
+  var dataA = null, dataB = null;
+  var lastResult = null;
+
+  window.loadFile = function (side, input) {
     if (!input.files.length) return;
     var file = input.files[0];
     var reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
+      var text;
+      try { text = decodeBytes(new Uint8Array(e.target.result)); }
+      catch (err) { text = ""; }
       var ta = document.getElementById("csv" + side);
-      ta.value = e.target.result;
+      ta.value = text;
       document.getElementById("file" + side + "Name").textContent = file.name;
       onCSVInput(side);
     };
-    reader.readAsText(file, "UTF-8");
+    reader.readAsArrayBuffer(file);   /* CP932対応のためバイト列で読む */
   };
 
-  /* ---- Live preview & header populator ---- */
   function onCSVInput(side) {
+    lastResult = null;   /* 入力が変わったら古い突合結果のダウンロードを無効化 */
     var text = document.getElementById("csv" + side).value.trim();
     var previewEl = document.getElementById("preview" + side);
     var keyEl = document.getElementById("key" + side);
@@ -370,27 +536,26 @@
     if (!text) {
       previewEl.innerHTML = "";
       keyEl.innerHTML = "<option value=''>（先にCSVを入力）</option>";
-      if (side === "A") dataA = null;
-      else dataB = null;
+      if (side === "A") dataA = null; else dataB = null;
       return;
     }
 
-    var rows = parseCSV(text);
-    if (rows.length < 1) {
-      previewEl.innerHTML = "<p style='color:var(--err);font-size:12px;'>CSVを正しく読み取れません</p>";
+    var rows, parsed;
+    try {
+      rows = parseCSV(text);
+      parsed = rowsToObjects(rows, side);
+    } catch (err) {
+      previewEl.innerHTML = "<p style='color:var(--err);font-size:12px;'>" + escHtml(err.message) + "</p>";
+      keyEl.innerHTML = "<option value=''>（CSVを修正してください）</option>";
+      if (side === "A") dataA = null; else dataB = null;
       return;
     }
+    if (side === "A") dataA = parsed; else dataB = parsed;
 
-    var parsed = rowsToObjects(rows);
-    if (side === "A") dataA = parsed;
-    else dataB = parsed;
-
-    /* Populate key selector */
-    keyEl.innerHTML = parsed.headers.map(function(h) {
-      return "<option value='" + h.replace(/'/g, "&#39;") + "'>" + h + "</option>";
+    keyEl.innerHTML = parsed.headers.map(function (h) {
+      return "<option value='" + escHtml(h).replace(/'/g, "&#39;") + "'>" + escHtml(h) + "</option>";
     }).join("");
 
-    /* Preview table (first 3 data rows) */
     var previewRows = rows.slice(0, Math.min(4, rows.length));
     var html = "<table class='preview-table'>";
     for (var i = 0; i < previewRows.length; i++) {
@@ -406,134 +571,90 @@
     previewEl.innerHTML = html;
   }
 
-  /* ---- Attach listeners ---- */
-  document.getElementById("csvA").addEventListener("input", function() { onCSVInput("A"); });
-  document.getElementById("csvB").addEventListener("input", function() { onCSVInput("B"); });
+  if (typeof document !== "undefined" && document.getElementById("csvA")) {
+    document.getElementById("csvA").addEventListener("input", function () { onCSVInput("A"); });
+    document.getElementById("csvB").addEventListener("input", function () { onCSVInput("B"); });
+  }
 
-  /* ---- Main match logic ---- */
-  window.runMatch = function() {
+  window.runMatch = function () {
+    lastResult = null;   /* 実行のたびに古い結果を破棄(失敗時に前回をDLさせない) */
     document.getElementById("errorBox").innerHTML = "";
-    if (!dataA || !dataB) {
-      showError("CSVのデータをA・Bどちらも入力してください。");
-      return;
-    }
-    if (dataA.data.length === 0 || dataB.data.length === 0) {
-      showError("CSVのデータ行(ヘッダー以外)が空です。"); return;
-    }
-
+    var textA = document.getElementById("csvA").value;
+    var textB = document.getElementById("csvB").value;
+    if (!textA.trim() || !textB.trim()) { showError("CSVのデータをA・Bどちらも入力してください。"); return; }
     var keyAval = document.getElementById("keyA").value;
     var keyBval = document.getElementById("keyB").value;
-    if (!keyAval || !keyBval) {
-      showError("照合キー列を選択してください。"); return;
+    if (!keyAval || !keyBval) { showError("照合キー列を選択してください。"); return; }
+
+    var res = computeMatch(textA, textB, keyAval, keyBval);
+    if (res.error) {
+      clearResults();
+      showError(
+        "<strong>突合を中止しました</strong>(結果の正確性を保証できないため):<br>・" + res.problems.join("<br>・") +
+        "<br><span style='color:var(--usuzumi);font-size:12px;'>※キーは「一意・空欄なし」が前提です。1列で一意にならない場合は一意になる列を選ぶか、複数列を1列に結合してください。空欄キーの行は除いてください。</span>"
+      );
+      document.getElementById("results").scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
     }
+    lastResult = res;
 
-    /* Build lookup map from B */
-    var mapB = {};
-    var bData = dataB.data;
-    for (var i = 0; i < bData.length; i++) {
-      var k = String(bData[i][keyBval]).trim();
-      if (!mapB[k]) mapB[k] = [];
-      mapB[k].push(bData[i]);
-    }
+    renderTable("tblMatch", res.matchHeaders, res.matchRows);
+    renderTable("tblAonly", res.aHeaders, res.aOnlyRows);
+    renderTable("tblBonly", res.bHeaders, res.bOnlyRows);
 
-    /* Merge headers (A headers + B headers excluding key) */
-    var bExtra = dataB.headers.filter(function(h) { return h !== keyBval; });
-    var mergedHeaders = dataA.headers.concat(bExtra.map(function(h) { return "B:" + h; }));
-    matchHeaders = mergedHeaders;
-    aHeaders = dataA.headers;
-    bHeaders = dataB.headers;
+    document.getElementById("cntMatch").textContent = res.matchRows.length;
+    document.getElementById("cntA").textContent = res.aOnlyRows.length;
+    document.getElementById("cntB").textContent = res.bOnlyRows.length;
+    document.getElementById("cntMatch2").textContent = res.matchRows.length;
+    document.getElementById("cntA2").textContent = res.aOnlyRows.length;
+    document.getElementById("cntB2").textContent = res.bOnlyRows.length;
 
-    matchRows = [];
-    aOnlyRows = [];
-    var usedBKeys = {};
-
-    var aData = dataA.data;
-    for (var i = 0; i < aData.length; i++) {
-      var aRow = aData[i];
-      var kv = String(aRow[keyAval]).trim();
-      if (mapB[kv] && mapB[kv].length > 0) {
-        /* Matched — join with first B row (or all if multi-match) */
-        for (var m = 0; m < mapB[kv].length; m++) {
-          var merged = Object.assign({}, aRow);
-          var bRow = mapB[kv][m];
-          for (var bi = 0; bi < bExtra.length; bi++) {
-            merged["B:" + bExtra[bi]] = bRow[bExtra[bi]];
-          }
-          matchRows.push(merged);
-        }
-        usedBKeys[kv] = true;
-      } else {
-        aOnlyRows.push(aRow);
-      }
-    }
-
-    bOnlyRows = [];
-    for (var j = 0; j < bData.length; j++) {
-      var bkv = String(bData[j][keyBval]).trim();
-      if (!usedBKeys[bkv]) {
-        bOnlyRows.push(bData[j]);
-      }
-    }
-
-    /* Render results */
-    renderTable("tblMatch", matchHeaders, matchRows);
-    renderTable("tblAonly", aHeaders, aOnlyRows);
-    renderTable("tblBonly", bHeaders, bOnlyRows);
-
-    document.getElementById("cntMatch").textContent = matchRows.length;
-    document.getElementById("cntA").textContent = aOnlyRows.length;
-    document.getElementById("cntB").textContent = bOnlyRows.length;
-    document.getElementById("cntMatch2").textContent = matchRows.length;
-    document.getElementById("cntA2").textContent = aOnlyRows.length;
-    document.getElementById("cntB2").textContent = bOnlyRows.length;
+    document.getElementById("errorBox").innerHTML =
+      "<div style='background:var(--ok-light);border:1px solid #BBF7D0;border-radius:7px;padding:10px 14px;font-size:12px;color:var(--ok);margin-bottom:12px;'>" +
+      "✓ キーの一意性・空欄なしを確認しました(A " + res.aCount + "行 / B " + res.bCount + "行)。突合は1対1で行いました。</div>";
 
     document.getElementById("results").classList.add("visible");
     switchTab("match");
     document.getElementById("results").scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  var RENDER_CAP = 2000;   /* 画面描画はこの件数まで(全件はCSVダウンロードに含まれる) */
   function renderTable(id, headers, rows) {
     var el = document.getElementById(id);
     if (!headers || !headers.length) { el.innerHTML = ""; return; }
-    var html = "<thead><tr>" + headers.map(function(h) {
-      return "<th>" + escHtml(h) + "</th>";
-    }).join("") + "</tr></thead><tbody>";
+    var html = "<thead><tr>" + headers.map(function (h) { return "<th>" + escHtml(h) + "</th>"; }).join("") + "</tr></thead><tbody>";
     if (rows.length === 0) {
       html += "<tr><td colspan='" + headers.length + "' style='color:var(--usuzumi);text-align:center;padding:12px;'>データなし</td></tr>";
     } else {
-      for (var i = 0; i < rows.length; i++) {
-        html += "<tr>" + headers.map(function(h) {
+      var shown = Math.min(rows.length, RENDER_CAP);
+      for (var i = 0; i < shown; i++) {
+        html += "<tr>" + headers.map(function (h) {
           return "<td>" + escHtml(rows[i][h] !== undefined ? rows[i][h] : "") + "</td>";
         }).join("") + "</tr>";
+      }
+      if (rows.length > RENDER_CAP) {
+        html += "<tr><td colspan='" + headers.length + "' style='color:var(--usuzumi);text-align:center;padding:10px;'>… 画面表示は先頭" + RENDER_CAP + "件まで。全" + rows.length + "件はCSVダウンロードに含まれます。</td></tr>";
       }
     }
     html += "</tbody>";
     el.innerHTML = html;
   }
 
-  /* ---- Tab switch ---- */
-  window.switchTab = function(name) {
+  window.switchTab = function (name) {
     var panes = ["match", "aonly", "bonly"];
-    panes.forEach(function(p) {
-      document.getElementById("pane" + ucFirst(p)).classList.toggle("active", p === name);
-    });
-    document.querySelectorAll(".tab-btn").forEach(function(btn, i) {
-      btn.classList.toggle("active", i === panes.indexOf(name));
-    });
+    panes.forEach(function (p) { document.getElementById("pane" + ucFirst(p)).classList.toggle("active", p === name); });
+    document.querySelectorAll(".tab-btn").forEach(function (btn, i) { btn.classList.toggle("active", i === panes.indexOf(name)); });
   };
   function ucFirst(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
-  /* ---- Download ---- */
-  window.downloadCSV = function(type) {
+  window.downloadCSV = function (type) {
+    if (!lastResult) return;
     var rows, headers, fname;
-    if (type === "match") { rows = matchRows; headers = matchHeaders; fname = "matched.csv"; }
-    else if (type === "aonly") { rows = aOnlyRows; headers = aHeaders; fname = "a_only.csv"; }
-    else { rows = bOnlyRows; headers = bHeaders; fname = "b_only.csv"; }
-
+    if (type === "match") { rows = lastResult.matchRows; headers = lastResult.matchHeaders; fname = "matched.csv"; }
+    else if (type === "aonly") { rows = lastResult.aOnlyRows; headers = lastResult.aHeaders; fname = "a_only.csv"; }
+    else { rows = lastResult.bOnlyRows; headers = lastResult.bHeaders; fname = "b_only.csv"; }
     if (!headers || !headers.length) return;
-    var lines = [headers.join(",")];
-    rows.forEach(function(r) { lines.push(toCSVLine(r, headers)); });
-    var blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    var blob = new Blob([buildCSV(rows, headers)], { type: "text/csv;charset=utf-8;" });
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     a.href = url; a.download = fname;
@@ -542,13 +663,22 @@
     URL.revokeObjectURL(url);
   };
 
-  /* ---- Helpers ---- */
   function showError(msg) {
-    document.getElementById("errorBox").innerHTML = "<div class='error-box'>" + escHtml(msg) + "</div>";
+    document.getElementById("errorBox").innerHTML = "<div class='error-box'>" + msg + "</div>";
     document.getElementById("results").classList.add("visible");
   }
-  function escHtml(s) {
-    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  function clearResults() {
+    ["tblMatch", "tblAonly", "tblBonly"].forEach(function (id) { document.getElementById(id).innerHTML = ""; });
+    ["cntMatch", "cntA", "cntB", "cntMatch2", "cntA2", "cntB2"].forEach(function (id) { document.getElementById(id).textContent = "0"; });
+  }
+
+  /* ---- Node 検品テスト用フック(ブラウザ動作には影響しない) ---- */
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = {
+      parseCSV: parseCSV, decodeBytes: decodeBytes, rowsToObjects: rowsToObjects,
+      normKey: normKey, validateKeys: validateKeys, computeMatch: computeMatch,
+      sanitizeCell: sanitizeCell, toCSVField: toCSVField, buildCSV: buildCSV
+    };
   }
 })();
 </script>
